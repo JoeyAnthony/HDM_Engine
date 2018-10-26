@@ -38,15 +38,15 @@ namespace gep
     public:
         inline IRenderer* getRenderer()
         {
-            return nullptr;
+            return m_pRenderer;
         }
         inline IRendererExtractor* getRendererExtractor()
         {
-            return nullptr;
+            return m_pRendererExtractor;
         }
         inline IUpdateFramework* getUpdateFramework()
         {
-            return nullptr;
+            return m_pUpdateFramework;
         }
         inline ILogging* getLogging()
         {
@@ -58,7 +58,7 @@ namespace gep
         }
         inline IResourceManager* getResourceManager()
         {
-            return nullptr;
+            return m_pResourceManager;
         }
         inline Timer* getTimer()
         {

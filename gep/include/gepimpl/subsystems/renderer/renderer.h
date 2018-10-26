@@ -37,7 +37,16 @@ namespace gep
 		virtual IDebugRenderer & getDebugRenderer() override;
 	};
 
-    class DebugRenderer
+    class DebugRenderer : public IDebugRenderer
     {
-    };
+		// Inherited via IDebugRenderer
+		virtual void drawLine(const vec3 & start, const vec3 & end, Color color = Color::white()) override;
+		virtual void drawLine(const vec2 & start, const vec2 & end, Color color = Color::white()) override;
+		virtual void drawArrow(const vec3 & start, const vec3 & end, Color color = Color::white()) override;
+		virtual void drawBox(const vec3 & min, const vec3 & max, Color color = Color::white()) override;
+		virtual void printText(const vec2 & screenPositionNormalized, const char * text, Color color = Color::white()) override;
+		virtual void printText(const vec3 & worldPosition, const char * text, Color color = Color::white()) override;
+		virtual void drawLocalAxes(const vec3 & objectPosition, const Quaternion & objectRotation, float axesScale = 10.0f, Color colorX = Color::red(), Color colorY = Color::green(), Color colorZ = Color::blue()) override;
+		virtual void drawLocalAxes(const vec3 & objectPosition, float axesScale = 10.0f, Color colorX = Color::red(), Color colorY = Color::green(), Color colorZ = Color::blue()) override;
+	};
 }
