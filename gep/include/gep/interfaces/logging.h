@@ -1,6 +1,6 @@
 #pragma once
-
 #include "gep/interfaces/subsystem.h"
+#include <map>
 
 
 namespace gep
@@ -17,6 +17,18 @@ namespace gep
     public:
         virtual ~ILogSink() {}
         virtual void take(LogChannel channel, const char* msg) = 0;
+
+		static inline const char* logChannelChar(LogChannel channel)
+		{
+			const std::map<LogChannel, const char*> enumStrings{
+				{LogChannel::message, "Message"},
+				{LogChannel::warning, "Warning"},
+				{LogChannel::error, "Error"}
+			};
+
+			auto found = enumStrings.find(channel);
+			return found == enumStrings.end() ? "Out of range" : found->second;
+		}
     };
 
     class ILogging

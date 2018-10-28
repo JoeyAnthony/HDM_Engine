@@ -29,7 +29,7 @@ namespace gep
 		IRendererExtractor* m_pRendererExtractor;
 		//ISettings* m_pSettings;
 		IUpdateFramework* m_pUpdateFramework;
-		//ILogging* m_pLogging;
+		ILogging* m_pLogging;
 		//ILogSink* m_pLogSink;
 		IMemoryManager* m_pMemoryManager;
 		IResourceManager* m_pResourceManager;
@@ -50,7 +50,7 @@ namespace gep
         }
         inline ILogging* getLogging()
         {
-            return nullptr;
+            return m_pLogging;
         }
         inline IMemoryManager* getMemoryManager()
         {
@@ -62,7 +62,7 @@ namespace gep
         }
         inline Timer* getTimer()
         {
-            return nullptr;
+            return m_pTimer;
         }
 
 		virtual void initialize() override;

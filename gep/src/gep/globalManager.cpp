@@ -1,3 +1,4 @@
+#pragma once
 #include "stdafx.h"
 #include "gep/globalManager.h"
 
@@ -6,7 +7,7 @@
 #include "gepimpl/subsystems/renderer/extractor.h"
 //#include "gepimpl/settings.h"
 #include "gepimpl/subsystems/updateFramework.h"
-//#include "gepimpl/subsystems/logging.h"
+#include "gepimpl/subsystems/logging.h"
 #include "gepimpl/subsystems/memoryManager.h"
 #include "gepimpl/subsystems/resourceManager.h"
 #include "gep/timer.h"
@@ -20,6 +21,12 @@ namespace gep
 {
 	void GlobalManager::initialize()
 	{
+		// Logging
+		m_pLogging = new Logging;
+		m_pLogging->registerSink(new FileLogSink);
+		m_pLogging->registerSink(new ConsoleLogSink);
+		m_pLogging->registerSink(new ConsoleLogSink);
+
 		//order of initialization:
 		m_pMemoryManager = new MemoryManager;
 		m_pResourceManager = new ResourceManager;
@@ -45,6 +52,10 @@ namespace gep
 		m_pRendererExtractor = nullptr;
 		m_pUpdateFramework = nullptr;
 		m_pTimer = nullptr;
+		
+		//logging
+		delete m_pLogging;
+		m_pLogging = nullptr;
 	}
 
 	GlobalManager::GlobalManager():
