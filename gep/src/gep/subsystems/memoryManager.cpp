@@ -3,6 +3,7 @@
 
 void gep::MemoryManager::initialize()
 {
+
 }
 
 void gep::MemoryManager::destroy()

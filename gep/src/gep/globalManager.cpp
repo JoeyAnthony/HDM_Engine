@@ -24,8 +24,10 @@ namespace gep
 		// Logging
 		m_pLogging = new Logging;
 		m_pLogging->registerSink(new FileLogSink);
+#ifdef _DEBUG
 		m_pLogging->registerSink(new ConsoleLogSink);
-		m_pLogging->registerSink(new ConsoleLogSink);
+#endif
+
 
 		//order of initialization:
 		m_pMemoryManager = new MemoryManager;

@@ -1,20 +1,25 @@
 #include "stdafx.h"
 #include "..\..\..\include\gepimpl\subsystems\logging.h"
+#include <cstdarg>
+#include <iostream>
+#include <iomanip>
+#include <cstdarg>
+
 
 void gep::Logging::logMessage(GEP_PRINTF_FORMAT_STRING const char * fmt, ...)
 {
-	for (int i = 0; i < MAX_SINK_OBJECTS; i++)
-	{
-
-	}
+	printMessage(LogChannel::message, fmt);
 }
 
 void gep::Logging::logWarning(GEP_PRINTF_FORMAT_STRING const char * fmt, ...)
 {
+	printMessage(LogChannel::warning, fmt);
+
 }
 
 void gep::Logging::logError(GEP_PRINTF_FORMAT_STRING const char * fmt, ...)
 {
+	printMessage(LogChannel::error, fmt);
 }
 
 void gep::Logging::registerSink(ILogSink * pSink)
@@ -43,14 +48,28 @@ void gep::Logging::deregisterSink(ILogSink * pSink)
 	}
 }
 
+void gep::Logging::printMessage(LogChannel channel, const char * fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	int len = _vscprintf(fmt, args) + 1;
+	char* msg = new char[len];
+	vsprintf_s(msg, len, fmt, args);
+
+	for (int i = 0; i < MAX_SINK_OBJECTS; i++)
+	{
+		m_pSinkObjects[i]->take(channel , msg);
+	}
+
+	va_end(args);
+	delete[] msg;
+}
+
 #include <iostream>
 gep::Logging::Logging()
 {
 	memset(m_pSinkObjects, 0, sizeof(m_pSinkObjects));
-
-	//size tests
-	//std::cout << "arr " << &m_pSinkObjects << " __size: " << sizeof(m_pSinkObjects) <<"\n";
-	//std::cout << "index 0 " <<&m_pSinkObjects[0] << " __size: " << sizeof(m_pSinkObjects[0])<< "\n";
 }
 
 gep::Logging::~Logging()
@@ -60,33 +79,23 @@ gep::Logging::~Logging()
 		delete m_pSinkObjects[i];
 		m_pSinkObjects[i] = nullptr;
 	}
-	//TODO test if it deletes all pointers in the array correctly
-}
-
-gep::ConsoleLogSink::ConsoleLogSink()
-{
-}
-
-gep::ConsoleLogSink::~ConsoleLogSink()
-{
 }
 
 void gep::ConsoleLogSink::take(LogChannel channel, const char * msg)
 {
-	std::cout << ILogSink::logChannelChar(channel) << ": " << msg << "\n";
-}
-
-gep::FileLogSink::FileLogSink()
-{
-	logStream.open("SystemLogFile.log", logStream.app);
-}
-
-gep::FileLogSink::~FileLogSink()
-{
-	logStream.close();
+	//https://en.cppreference.com/w/cpp/io/manip/put_time for the time format
+	std::time_t time = std::time(nullptr);
+	std::cout << std::put_time(std::localtime(&time), "%b %F %T") << ": " << ILogSink::logChannelChar(channel) << ": " << msg << "\n";
 }
 
 void gep::FileLogSink::take(LogChannel channel, const char * msg)
 {
-	logStream << ILogSink::logChannelChar(channel) << ": " << msg << "\n";
+	std::ofstream logStream;
+	logStream.open("SystemLogFile.log", logStream.app);
+
+	//https://en.cppreference.com/w/cpp/io/manip/put_time for the time format
+	std::time_t time = std::time(nullptr);
+	logStream <<std::put_time(std::localtime(&time), "%b %F %T") <<": "<< ILogSink::logChannelChar(channel) << ": " << msg << "\n";
+	logStream.flush();
+	logStream.close();
 }
