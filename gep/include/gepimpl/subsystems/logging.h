@@ -2,9 +2,12 @@
 //#include "gep/common.h"
 #include "gep/interfaces/logging.h"
 
+class GlobalManager;
+
 namespace gep
 {
 	#define MAX_SINK_OBJECTS 2
+
     class Logging : public ILogging
     {
 	private:
@@ -37,6 +40,4 @@ namespace gep
 		//Inherited via ILogSink
 		virtual void take(LogChannel channel, const char * msg) override;
 	};
-
-	
 }

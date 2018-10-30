@@ -49,16 +49,22 @@
     <ClInclude Include="include\gep\math3d\vec2.h" />
     <ClInclude Include="include\gep\math3d\vec3.h" />
     <ClInclude Include="include\gep\memory\allocator.h" />
+    <ClInclude Include="include\gep\memory\allocators.h" />
+    <ClInclude Include="include\gep\referencecounting.h" />
     <ClInclude Include="include\gep\settings.h" />
     <ClInclude Include="include\gep\singleton.h" />
     <ClInclude Include="include\gep\threading\mutex.h" />
     <ClInclude Include="include\gep\timer.h" />
     <ClInclude Include="include\gep\types.h" />
+    <ClInclude Include="include\gep\unittest\unittestmanager.h" />
     <ClInclude Include="include\gep\utils.h" />
     <ClInclude Include="include\gepimpl\settings.h" />
+    <ClInclude Include="include\gep\weakptr.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\gep\memory\allocators.cpp" />
+    <ClCompile Include="src\gep\referencecounting.cpp" />
     <ClCompile Include="src\gep\settings.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\gep\common.cpp" />
@@ -72,6 +78,7 @@
     <ClCompile Include="src\gep\subsystems\resourceManager.cpp" />
     <ClCompile Include="src\gep\subsystems\updateFramework.cpp" />
     <ClCompile Include="src\gep\threading\mutex.cpp" />
+    <ClCompile Include="src\gep\unittest\unittestmanager.cpp" />
     <ClCompile Include="src\gep\utils.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -18,8 +18,6 @@ namespace gep
     class IResourceManager;
     class Timer;
 
-	
-
     /// \brief the global manager responsible for destroying most subsystems
     class GEP_API GlobalManager : public DoubleLockingSingleton<GlobalManager>, public ISubsystem
     {
@@ -73,5 +71,7 @@ namespace gep
     };
 }
 
-
 #define g_globalManager gep::GlobalManager::instance()
+#define g_logMessage(msg) gep::GlobalManager::instance().getLogging()->logMessage(msg)
+#define g_logWarning(msg) gep::GlobalManager::instance().getLogging()->logWarning(msg)
+#define g_logError(msg) gep::GlobalManager::instance().getLogging()->logError(msg)

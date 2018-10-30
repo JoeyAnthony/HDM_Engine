@@ -14,7 +14,6 @@ void gep::Logging::logMessage(GEP_PRINTF_FORMAT_STRING const char * fmt, ...)
 void gep::Logging::logWarning(GEP_PRINTF_FORMAT_STRING const char * fmt, ...)
 {
 	printMessage(LogChannel::warning, fmt);
-
 }
 
 void gep::Logging::logError(GEP_PRINTF_FORMAT_STRING const char * fmt, ...)

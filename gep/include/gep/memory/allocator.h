@@ -78,6 +78,7 @@ namespace gep
 
 #define g_stdAllocator (::gep::StdAllocator::globalInstance())
 
+#include "gep/ReferenceCounting.h"
 #include "gep/ArrayPtr.h"
 
 namespace gep
@@ -113,10 +114,31 @@ namespace gep
 
     };
 
+    template <class T, class A>
+    struct NewHelper<T, A, true>
+    {
+        static void* newHelper(A* pAllocator)
+        {
+            GEP_ASSERT(pAllocator != nullptr);
+            return newHelper(*pAllocator);
+        }
+
+        static void* newHelper(A& allocator)
+        {
+            auto pMem = allocator.allocateMemory(sizeof(T));
+#ifdef _DEBUG
+            memset(pMem, 0, sizeof(T));
+#endif // _DEBUG
+            ReferenceCounted* pObj = static_cast<ReferenceCounted*>(static_cast<T*>(pMem));
+            pObj->setAllocator(&allocator);
+            return pObj;
+        }
+
+    };
 }
 
-#define GEP_NEW(allocator, T) new (gep::NewHelper<T, typename std::remove_reference<typename std::remove_pointer<decltype(allocator)>::type>::type, false>::newHelper(allocator)) T
-#define GEP_NEW_ARRAY(allocator, T, length) gep::NewHelper<T, typename std::remove_reference<typename std::remove_pointer<decltype(allocator)>::type>::type, false>::newArray(allocator, length)
+#define GEP_NEW(allocator, T) new (gep::NewHelper<T, typename std::remove_reference<typename std::remove_pointer<decltype(allocator)>::type>::type, std::is_convertible<T*, gep::ReferenceCounted*>::value>::newHelper(allocator)) T
+#define GEP_NEW_ARRAY(allocator, T, length) gep::NewHelper<T, typename std::remove_reference<typename std::remove_pointer<decltype(allocator)>::type>::type, std::is_convertible<T*, gep::ReferenceCounted*>::value>::newArray(allocator, length)
 #define GEP_DELETE(allocator, ptr) { gep::deleteHelper(ptr, allocator); ptr = nullptr; }
 namespace gep
 {

@@ -222,6 +222,18 @@
     <ClInclude Include="include\gepimpl\settings.h">
       <Filter>Header Files\gepimpl</Filter>
     </ClInclude>
+    <ClInclude Include="include\gep\referencecounting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\weakptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\memory\allocators.h">
+      <Filter>Header Files\gep\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\unittest\unittestmanager.h">
+      <Filter>Header Files\gep\unittest</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -268,6 +280,15 @@
     </ClCompile>
     <ClCompile Include="src\gep\settings.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\referencecounting.cpp">
+      <Filter>Source Files\gep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\memory\allocators.cpp">
+      <Filter>Source Files\gep\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\unittest\unittestmanager.cpp">
+      <Filter>Source Files\gep\unittest</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
