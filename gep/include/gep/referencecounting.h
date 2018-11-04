@@ -13,7 +13,7 @@ namespace gep
 
     /// \brief base class for all reference counted classes
     class GEP_API ReferenceCounted
-    {
+	{
     public:
 		ReferenceCounted() { m_referenceCount.referenceCount = 0; };
 		virtual ~ReferenceCounted() {};
@@ -63,70 +63,96 @@ namespace gep
         }
     };
 
+	//SmartPtr EXPECTS an object that derives from ReferenceCounted
     template <class T>
     struct SmartPtr
     {
     private:
+		T* m_pOrigPtr;
+
     public:
         /// \brief default constructor
         inline SmartPtr()
         {
+			m_pOrigPtr = nullptr;
         }
 
-        /// \brief copy constructor
-        inline SmartPtr(const SmartPtr<T>& other)
-        {
-        }
+		/// \brief copy constructor
+		inline SmartPtr(const SmartPtr<T>& other)
+		{
+			m_pOrigPtr = other.m_pOrigPtr;
+			if (m_pOrigPtr != nullptr)
+				m_pOrigPtr->addReference();
+		}
 
         /// \brief move constructor
         inline SmartPtr(SmartPtr<T>&& other)
-        {
+		{
+			m_pOrigPtr = other.m_pOrigPtr;
+			other.m_pOrigPtr = nullptr;
         }
 
         /// \brief construct from an instance
         inline SmartPtr(T* ptr)
         {
+			m_pOrigPtr = ptr;
+			if(m_pOrigPtr != nullptr)
+				m_pOrigPtr->addReference();
         }
 
         /// \brief destructor
         inline ~SmartPtr()
         {
+			if (m_pOrigPtr != nullptr) {
+				m_pOrigPtr->removeReference();
+				m_pOrigPtr = nullptr;
+			}
         }
 
         /// \brief assignment operator
         inline SmartPtr<T>& operator = (const SmartPtr& rh)
         {
+			m_pOrigPtr = rh.m_pOrigPtr;
+			m_pOrigPtr->addReference();
             return *this;
         }
 
         /// \brief move assignment operator
         inline SmartPtr<T>& operator = (SmartPtr&& rh)
         {
+			m_pOrigPtr = rh.m_pOrigPtr;
+			rh.m_pOrigPtr = nullptr;
             return *this;
         }
 
         /// \brief assign from an instance
         inline SmartPtr<T>& operator = (T* ptr)
         {
+			if (ptr == nullptr) {
+				this->~SmartPtr();
+				return *this;
+			}
+			m_pOrigPtr = ptr;
+			m_pOrigPtr->addReference();
             return *this;
         }
 
         /// \brief -> operator
         inline T* operator -> ()
         {
-            return nullptr;
+            return m_pOrigPtr;
         }
 
         /// \brief const -> operator
         inline const T* operator -> () const
         {
-            return nullptr;
+            return m_pOrigPtr;
         }
 
         /// \brief dereferencing operator
         inline T& operator * ()
         {
-            return *((T*)nullptr);
+            return *((T*)m_pOrigPtr);
         }
 
         /// \brief const dereferencing operator
@@ -138,7 +164,7 @@ namespace gep
         /// \brief returns the stored pointer
         inline T* get()
         {
-            return nullptr;
+            return m_pOrigPtr;
         }
 
         /// \brief converts to a boolean (null check)

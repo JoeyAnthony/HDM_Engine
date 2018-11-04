@@ -6,19 +6,41 @@
 #include <limits>
 #include "gep/threading/mutex.h"
 
-
 namespace gep
 {
+#define MAX_WEAK_REFEENCES 512
 
+	/// \brief union for referencing objects in weak pointers
+	union WeakRefIndex {
+		struct {
+			unsigned int index : 24;
+			unsigned int hash : 8;
+		};
+		unsigned int both;
+		bool indexCompare(unsigned int other) { return index == other ? true : false; }
+		bool hashCompare(unsigned int other) { return hash == other ? true : false; }
+	};
 
     /// \brief base class for all weak referenced objects
     template <class T>
     class WeakReferenced
-    {
-    public:
-        WeakReferenced()
-        {
-        }
+	{
+		WeakRefIndex m_ptrData;
+	public:
+		static WeakReferenced* globalHandleTable;
+
+		WeakReferenced()
+		{
+			memset(globalHandleTable, 0, sizeof(WeakReferenced*)*MAX_WEAK_REFEENCES);
+
+			for (int tableindex = 0; tableindex < MAX_WEAK_REFEENCES; tableindex++) {
+				if (WeakReferenced::globalHandleTable[tableindex] == nullptr){
+					//WeakReferenced::globalHandleTable[tableindex] = this;
+					break;
+				}
+				m_ptrData.both = 1;
+			}
+		}
 
         virtual ~WeakReferenced()
         {
@@ -35,6 +57,8 @@ namespace gep
         {
         }
     };
+
+
 
     // this macro should define all static members neccessary for WeakReferenced
     #define DefineWeakRefStaticMembers(T)
@@ -89,4 +113,7 @@ namespace gep
         }
 		
     };
+
+
+
 }
