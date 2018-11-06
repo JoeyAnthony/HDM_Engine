@@ -3,6 +3,19 @@
 #include "gep/threading/mutex.h"
 #include <vector>
 
+namespace memtools
+{
+	template<class T>
+	T* memorylloc(size_t size){
+		T* block = (T*)malloc(size);
+		memset(block, 0, size);
+		return block;
+	}
+	void memoryCopy();
+	//void deleteMemory(void* block){
+	//	free(block);
+	//}
+}
 
 namespace gep
 {
@@ -10,8 +23,9 @@ namespace gep
     class IAllocator
     {
     public:
-        virtual void* allocateMemory(size_t size) = 0;
-        virtual void freeMemory(void* mem) = 0;
+	    virtual ~IAllocator() = default;
+	    virtual void* allocateMemory(size_t size) = 0;
+		virtual void freeMemory(void* mem) = 0;
     };
 
     /// \brief interface for a allocator which keeps statistics

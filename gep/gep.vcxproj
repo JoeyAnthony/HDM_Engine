@@ -27,6 +27,8 @@
     <ClInclude Include="include\gepimpl\subsystems\updateFramework.h" />
     <ClInclude Include="include\gep\ArrayPtr.h" />
     <ClInclude Include="include\gep\common.h" />
+    <ClInclude Include="include\gep\container\dynamicarray.h" />
+    <ClInclude Include="include\gep\container\hashmap.h" />
     <ClInclude Include="include\gep\exit.h" />
     <ClInclude Include="include\gep\gepmodule.h" />
     <ClInclude Include="include\gep\globalManager.h" />
@@ -50,19 +52,24 @@
     <ClInclude Include="include\gep\math3d\vec3.h" />
     <ClInclude Include="include\gep\memory\allocator.h" />
     <ClInclude Include="include\gep\memory\allocators.h" />
+    <ClInclude Include="include\gep\memory\memoryutils.h" />
     <ClInclude Include="include\gep\referencecounting.h" />
     <ClInclude Include="include\gep\settings.h" />
     <ClInclude Include="include\gep\singleton.h" />
     <ClInclude Include="include\gep\threading\mutex.h" />
     <ClInclude Include="include\gep\timer.h" />
+    <ClInclude Include="include\gep\traits.h" />
     <ClInclude Include="include\gep\types.h" />
     <ClInclude Include="include\gep\unittest\unittestmanager.h" />
     <ClInclude Include="include\gep\utils.h" />
     <ClInclude Include="include\gepimpl\settings.h" />
     <ClInclude Include="include\gep\weakptr.h" />
+    <ClInclude Include="memtools.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="memtools.cpp" />
+    <ClCompile Include="src\gep\container\hashmap.cpp" />
     <ClCompile Include="src\gep\memory\allocators.cpp" />
     <ClCompile Include="src\gep\referencecounting.cpp" />
     <ClCompile Include="src\gep\settings.cpp" />

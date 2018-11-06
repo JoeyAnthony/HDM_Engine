@@ -2,7 +2,7 @@
 //#include "gep/common.h"
 #include "gep/interfaces/logging.h"
 
-class GlobalManager;
+//class GlobalManager;
 
 namespace gep
 {

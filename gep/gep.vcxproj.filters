@@ -234,6 +234,21 @@
     <ClInclude Include="include\gep\unittest\unittestmanager.h">
       <Filter>Header Files\gep\unittest</Filter>
     </ClInclude>
+    <ClInclude Include="include\gep\container\dynamicarray.h">
+      <Filter>Header Files\gep\container</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\container\hashmap.h">
+      <Filter>Header Files\gep\container</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\memory\memoryutils.h">
+      <Filter>Header Files\gep\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\traits.h">
+      <Filter>Header Files\gep</Filter>
+    </ClInclude>
+    <ClInclude Include="memtools.h">
+      <Filter>Header Files\gep\memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -289,6 +304,12 @@
     </ClCompile>
     <ClCompile Include="src\gep\unittest\unittestmanager.cpp">
       <Filter>Source Files\gep\unittest</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\container\hashmap.cpp">
+      <Filter>Source Files\gep\container</Filter>
+    </ClCompile>
+    <ClCompile Include="memtools.cpp">
+      <Filter>Source Files\gep\memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

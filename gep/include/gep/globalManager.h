@@ -69,6 +69,7 @@ namespace gep
 		GlobalManager();
 		~GlobalManager();
     };
+
 }
 
 #define g_globalManager gep::GlobalManager::instance()
