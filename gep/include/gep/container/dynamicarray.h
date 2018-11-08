@@ -1,8 +1,6 @@
 #pragma once
+#include <iostream>
 #include "gep/globalManager.h"
-
-//#include "gep/memory/allocator.h"
-
 #define INITIAL_MAX_ELEMENT_SIZE 8
 
 namespace gep
@@ -22,7 +20,7 @@ namespace gep
 		size_t m_maxElements;
 		///////////
 		IAllocator* m_pArrayAllocator;
-		size_t m_reserveNum;
+		size_t m_reserveNumElements;
 		unsigned int m_count;
 		T* m_pBegin;
 		T* m_pEnd;
@@ -35,11 +33,7 @@ namespace gep
         DynamicArrayImpl(IAllocator* pAllocator)
         {
 			m_pArrayAllocator = pAllocator;
-			m_maxElements = sizeof(T) * INITIAL_MAX_ELEMENT_SIZE;
-			m_pMemPtr = memtools::memoryalloc<T>(m_maxElements);
-			m_reserveNum = 0;
-			m_count = 0;
-			m_pBegin = setEndPtr();
+			init();
         }
 
         /// \brief copy constructor
@@ -50,16 +44,22 @@ namespace gep
         /// \brief move constructor
         DynamicArrayImpl(DynamicArrayImpl<T>&& other)
         {
+			//TODO next
         }
 
         /// \brief constructor with inital data
-        DynamicArrayImpl(IAllocator* pAllocator, const ArrayPtr<T>& data)
+        DynamicArrayImpl(IAllocator* pAllocator, const ArrayPtr<T>& data) : DynamicArrayImpl(pAllocator)
         {
+			if (data.length() > m_count)
+				resize(data.length() * 2 - data.length() / 2);
+			memcpy(m_pMemPtr, data.getPtr(), data.length()*sizeof(T));
+			m_count = data.length();
         }
 
         /// \brief destructor
         ~DynamicArrayImpl()
         {
+			clear(true);
         }
 
         /// \brief copy assignment
@@ -76,11 +76,11 @@ namespace gep
             return *((DynamicArrayImpl<T>*)nullptr);
         }
 
+
         /// \brief [] operator
         T& operator[] (size_t index)
         {
-            GEP_ASSERT(0, "not implemented");
-            return *((T*)nullptr);
+            return *(m_pMemPtr+index);
         }
 
         /// \brief [] operator const
@@ -90,6 +90,16 @@ namespace gep
             return *((const T*)nullptr);
         }
 
+		void init()
+        {
+			m_maxElements = INITIAL_MAX_ELEMENT_SIZE;
+
+			m_pMemPtr = static_cast<T*>(m_pArrayAllocator->allocateMemory(sizeof(T) * m_maxElements));
+
+			m_reserveNumElements = 0;
+			m_count = 0;
+			m_pBegin = setEndPtr();
+        }
         /// \brief reserves at least the given number of elements
         void reserve(size_t numElements)
         {
@@ -100,42 +110,45 @@ namespace gep
         /// \brief resizes the array to the given number of elements
         void resize(size_t numElements)
         {
-			int allocsize = sizeof(T)*numElements;
-			if (allocsize < m_reserveNum)
-				allocsize = m_reserveNum;
+			size_t newNumOfElements = numElements;
+			if (numElements < m_reserveNumElements)
+				newNumOfElements = m_reserveNumElements;
 
 			T* oldalloc = m_pMemPtr;
-			T* newalloc = memtools::memoryalloc<T>(numElements * sizeof(T));
+			T* newalloc =  static_cast<T*>( m_pArrayAllocator->allocateMemory(newNumOfElements * sizeof(T)));
 
-			if (numElements < (sizeof(T)*m_count / sizeof(T))) {
+			if (newNumOfElements < m_count) {
 				//TODO num of elements are smaller than original
 				//g_logMessage("Num of elements are smaller than original");
 				GEP_DEBUG_BREAK;
 			}
-			memmove(newalloc, oldalloc, sizeof(T)*m_count);
+			memcpy(newalloc, oldalloc, sizeof(T)*m_count);
 			m_pMemPtr = newalloc;
-			//memtools::deleteMemory(oldalloc);
-			free(oldalloc);
+			m_pArrayAllocator->freeMemory(oldalloc);
 
+			m_maxElements = newNumOfElements;
 			m_pBegin = m_pMemPtr;
 			setEndPtr();
         }
 
 		/// \brief destroys all elements in the array and sets its length to 0
-        void clear()
+        void clear(bool destruct=false)
         {
+			m_pArrayAllocator->freeMemory(m_pMemPtr);
+			if (!destruct)
+				init();
         }
 
         /// \brief appends a element to the end of the array
         void append(const T& el)
         {
-			if(m_pEnd == (m_pMemPtr + m_maxElements + sizeof(T)))
+			if(m_pEnd == (m_pMemPtr + m_maxElements))
 			{
 				resize(m_count * 2);
 			}
 
+			new (m_pEnd) T(el);
 			m_count++;
-			m_pEnd = new T(el);
 			setEndPtr();
         }
 
@@ -196,13 +209,13 @@ namespace gep
         /// \brief returns the length of the dynamic array
         size_t length() const
         {
-            return 0;
+            return m_count;
         }
 
         /// \brief returns the reserved number of elements
         size_t reserved() const
         {
-            return 0;
+            return m_reserveNumElements;
         }
 
         /// \brief removes a element without keeping the order of elements

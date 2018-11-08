@@ -6,15 +6,17 @@
 namespace memtools
 {
 	template<class T>
-	T* memorylloc(size_t size){
+	T* memoryalloc(size_t size){
 		T* block = (T*)malloc(size);
 		memset(block, 0, size);
 		return block;
 	}
 	void memoryCopy();
-	//void deleteMemory(void* block){
-	//	free(block);
-	//}
+
+	template<class T>
+	void deleteMemory(T* block){
+		free(block);
+	}
 }
 
 namespace gep
