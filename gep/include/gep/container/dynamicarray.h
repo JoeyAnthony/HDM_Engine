@@ -39,13 +39,14 @@ namespace gep
         /// \brief copy constructor
         DynamicArrayImpl(const DynamicArrayImpl<T>& other)
         {
+			copy(other);
         }
 
         /// \brief move constructor
         DynamicArrayImpl(DynamicArrayImpl<T>&& other)
-        {
-			//TODO next
-        }
+		{
+			move(other);
+		}
 
         /// \brief constructor with inital data
         DynamicArrayImpl(IAllocator* pAllocator, const ArrayPtr<T>& data) : DynamicArrayImpl(pAllocator)
@@ -60,20 +61,25 @@ namespace gep
         ~DynamicArrayImpl()
         {
 			clear(true);
+			//m_pArrayAllocator = nullptr;
         }
 
         /// \brief copy assignment
         DynamicArrayImpl<T>& operator = (const DynamicArrayImpl<T>& rh)
         {
-            GEP_ASSERT(0, "not implemented");
-            return *((DynamicArrayImpl<T>*)nullptr);
+			//free memory, then copy
+			clear(true);
+			copy(rh);
+            return *(this);
         }
 
         /// \brief move assignment
         DynamicArrayImpl<T>& operator = (DynamicArrayImpl<T>&& rh)
         {
-            GEP_ASSERT(0, "not implemented");
-            return *((DynamicArrayImpl<T>*)nullptr);
+			//free memory, then move
+			clear(true);
+			move(rh);
+            return *(this);
         }
 
 
@@ -86,25 +92,14 @@ namespace gep
         /// \brief [] operator const
         const T& operator[] (size_t index) const
         {
-            GEP_ASSERT(0, "not implemented");
-            return *((const T*)nullptr);
+			return *(m_pMemPtr + index);
         }
 
-		void init()
-        {
-			m_maxElements = INITIAL_MAX_ELEMENT_SIZE;
 
-			m_pMemPtr = static_cast<T*>(m_pArrayAllocator->allocateMemory(sizeof(T) * m_maxElements));
-
-			m_reserveNumElements = 0;
-			m_count = 0;
-			m_pBegin = setEndPtr();
-        }
         /// \brief reserves at least the given number of elements
         void reserve(size_t numElements)
         {
 			int s = sizeof(T)*numElements;
-			//TODO resize immediately or when resize happens?
         }
 
         /// \brief resizes the array to the given number of elements
@@ -134,7 +129,20 @@ namespace gep
 		/// \brief destroys all elements in the array and sets its length to 0
         void clear(bool destruct=false)
         {
+			if (m_pMemPtr == nullptr)
+			{
+				printf("null \n");
+			}
+			if (m_pMemPtr == nullptr)
+				return;
 			m_pArrayAllocator->freeMemory(m_pMemPtr);
+			m_pMemPtr = nullptr;
+			m_maxElements = 0;
+			m_reserveNumElements = 0;
+			m_count = 0;
+			m_pBegin = nullptr;
+			m_pEnd = nullptr;
+			//if destruct is true it means the array will be uninitialized and not ready for use
 			if (!destruct)
 				init();
         }
@@ -165,7 +173,12 @@ namespace gep
         /// \brief appends an array
         void append(const ArrayPtr<T>& array)
         {
+			if (m_count < m_count + array.length())
+				resize(m_count + array.length());
 
+			memcpy(m_pEnd, array.getPtr(), sizeof(T) * array.length());
+			m_count+=array.length();
+			setEndPtr();
         }
 
         /// \brief creates a begin iterator
@@ -198,7 +211,7 @@ namespace gep
         /// \brief creates a array ptr point to the container data
         ArrayPtr<T> toArray()
         {
-            return ArrayPtr<T>();
+            return ArrayPtr<T>(m_pMemPtr, m_count);
         }
 
         const ArrayPtr<T> toArray() const
@@ -239,6 +252,50 @@ namespace gep
         }
 
     private:
+		/// \brief Initializes all values, m_pAllocator cannot be null
+		void init(int maxElements = INITIAL_MAX_ELEMENT_SIZE)
+		{
+			m_maxElements = maxElements;
+
+			m_pMemPtr = static_cast<T*>(m_pArrayAllocator->allocateMemory(sizeof(T) * m_maxElements));
+
+			m_reserveNumElements = 0;
+			m_count = 0;
+			m_pBegin = setEndPtr();
+		}
+
+		/// \brief copies other dynamic array in this array
+		void copy(const DynamicArrayImpl<T>& other)
+		{
+			m_pArrayAllocator = other.m_pArrayAllocator;
+			init(other.m_count);
+			memcpy(m_pMemPtr, other.m_pMemPtr, other.m_count * sizeof(T));
+			m_reserveNumElements = other.m_reserveNumElements;
+			//init resets count
+			m_count = other.m_count;
+		}
+
+		/// \brief moves other dynamic array in this array
+		void move(DynamicArrayImpl<T>& other)
+		{
+			m_pArrayAllocator = other.m_pArrayAllocator;
+			m_pMemPtr = other.m_pMemPtr;
+			m_maxElements = other.m_maxElements;
+			m_reserveNumElements = other.m_reserveNumElements;
+			m_count = other.m_count;
+			m_pBegin = other.m_pBegin;
+			m_pEnd = other.m_pEnd;
+
+			//////
+			//other.m_pArrayAllocator = nullptr;
+			other.m_pMemPtr = nullptr;
+			other.m_maxElements = 0;
+			other.m_reserveNumElements = 0;
+			other.m_count = 0;
+			other.m_pBegin = nullptr;
+			other.m_pEnd = nullptr;
+		}
+
 		/// \brief Sets the new end pointer to m_pEnd and returns it
 		T* setEndPtr()
 		{
