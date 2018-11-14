@@ -1,6 +1,6 @@
 #pragma once
-#include <iostream>
 #include "gep/globalManager.h"
+#include "gep/memory/memtools.h"
 #define INITIAL_MAX_ELEMENT_SIZE 8
 
 namespace gep
@@ -22,8 +22,6 @@ namespace gep
 		IAllocator* m_pArrayAllocator;
 		size_t m_reserveNumElements;
 		unsigned int m_count;
-		T* m_pBegin;
-		T* m_pEnd;
 
     public:
         /// \brief constructor
@@ -39,20 +37,22 @@ namespace gep
         /// \brief copy constructor
         DynamicArrayImpl(const DynamicArrayImpl<T>& other)
         {
+			if (other.m_pMemPtr == m_pMemPtr) return;
 			copy(other);
         }
 
         /// \brief move constructor
         DynamicArrayImpl(DynamicArrayImpl<T>&& other)
 		{
+			if (other.m_pMemPtr == m_pMemPtr) return;
 			move(other);
 		}
 
         /// \brief constructor with inital data
-        DynamicArrayImpl(IAllocator* pAllocator, const ArrayPtr<T>& data) : DynamicArrayImpl(pAllocator)
+        DynamicArrayImpl(IAllocator* pAllocator, const ArrayPtr<T>& data)
         {
-			if (data.length() > m_count)
-				resize(data.length() * 2 - data.length() / 2);
+			m_pArrayAllocator = pAllocator;
+			init(data.length());
 			memcpy(m_pMemPtr, data.getPtr(), data.length()*sizeof(T));
 			m_count = data.length();
         }
@@ -67,6 +67,7 @@ namespace gep
         /// \brief copy assignment
         DynamicArrayImpl<T>& operator = (const DynamicArrayImpl<T>& rh)
         {
+			if (rh.m_pMemPtr == m_pMemPtr) return *this;
 			//free memory, then copy
 			clear(true);
 			copy(rh);
@@ -76,6 +77,7 @@ namespace gep
         /// \brief move assignment
         DynamicArrayImpl<T>& operator = (DynamicArrayImpl<T>&& rh)
         {
+			if (rh.m_pMemPtr == m_pMemPtr) return *this;
 			//free memory, then move
 			clear(true);
 			move(rh);
@@ -117,22 +119,16 @@ namespace gep
 				//g_logMessage("Num of elements are smaller than original");
 				GEP_DEBUG_BREAK;
 			}
-			memcpy(newalloc, oldalloc, sizeof(T)*m_count);
-			m_pMemPtr = newalloc;
+			memtools::initCopy<T>(newalloc, oldalloc, m_count);
+        	m_pMemPtr = newalloc;
 			m_pArrayAllocator->freeMemory(oldalloc);
 
 			m_maxElements = newNumOfElements;
-			m_pBegin = m_pMemPtr;
-			setEndPtr();
         }
 
 		/// \brief destroys all elements in the array and sets its length to 0
         void clear(bool destruct=false)
         {
-			if (m_pMemPtr == nullptr)
-			{
-				printf("null \n");
-			}
 			if (m_pMemPtr == nullptr)
 				return;
 			m_pArrayAllocator->freeMemory(m_pMemPtr);
@@ -140,8 +136,6 @@ namespace gep
 			m_maxElements = 0;
 			m_reserveNumElements = 0;
 			m_count = 0;
-			m_pBegin = nullptr;
-			m_pEnd = nullptr;
 			//if destruct is true it means the array will be uninitialized and not ready for use
 			if (!destruct)
 				init();
@@ -150,24 +144,35 @@ namespace gep
         /// \brief appends a element to the end of the array
         void append(const T& el)
         {
-			if(m_pEnd == (m_pMemPtr + m_maxElements))
-			{
-				resize(m_count * 2);
-			}
+			if (end() == (m_pMemPtr + m_maxElements))
+				resize(m_count * 1.5);
 
-			new (m_pEnd) T(el);
+			new (end()) T(el);
 			m_count++;
-			setEndPtr();
         }
 
         /// \brief removes the element at the given index shifting all elements behind it one index forth
         void removeAtIndex(size_t index)
         {
+
         }
 
         /// \brief inserts a element at the given index
         void insertAtIndex(size_t index, const T& value)
         {
+			//index must be in range
+			if (index > m_count-1 || index < 0)
+				return;
+			//array must be large enough
+			if (end() == (m_pMemPtr + m_maxElements))
+				resize(m_count * 1.5);
+
+			//shift memory
+			shift(m_pMemPtr + index, sizeof(T) * (m_count - index), 1);
+
+			//insert
+			new(m_pMemPtr + index) T(value);
+			m_count++;
         }
 
         /// \brief appends an array
@@ -176,9 +181,8 @@ namespace gep
 			if (m_count < m_count + array.length())
 				resize(m_count + array.length());
 
-			memcpy(m_pEnd, array.getPtr(), sizeof(T) * array.length());
+			memcpy(end(), array.getPtr(), sizeof(T) * array.length());
 			m_count+=array.length();
-			setEndPtr();
         }
 
         /// \brief creates a begin iterator
@@ -186,26 +190,26 @@ namespace gep
         {
             // Tip: pointers are valid iterators
             // a begin iterator points to the first element in the container
-            return nullptr;
+            return m_pMemPtr;
         }
 
         /// \brief creates a constant begin iterator
         const T* begin() const
         {
-            return nullptr;
+            return m_pMemPtr;
         }
 
         /// \brief creates a end iterator
         T* end()
         {
             // A end iterator points to the element after the last element in the container. (the first non valid element)
-            return nullptr;
+            return m_pMemPtr + m_count;
         }
 
         /// \brief creates a constant end iterator
         const T* end() const
         {
-            return nullptr;
+            return m_pMemPtr + m_count;
         }
 
         /// \brief creates a array ptr point to the container data
@@ -234,21 +238,25 @@ namespace gep
         /// \brief removes a element without keeping the order of elements
         void removeAtIndexUnordered(size_t index)
         {
+			memset(m_pMemPtr + index, 0, sizeof(T));
         }
 
         /// \brief returns the last element in the array
         T& lastElement()
         {
+			return m_pMemPtr + m_count - 1;
         }
 
         /// \brief returns the last element in the array
         const T& lastElement() const
         {
+			return m_pMemPtr + m_count - 1;
         }
 
         /// \brief removes the last element in the array
         void removeLastElement()
         {
+			m_count--;
         }
 
     private:
@@ -261,7 +269,6 @@ namespace gep
 
 			m_reserveNumElements = 0;
 			m_count = 0;
-			m_pBegin = setEndPtr();
 		}
 
 		/// \brief copies other dynamic array in this array
@@ -269,7 +276,8 @@ namespace gep
 		{
 			m_pArrayAllocator = other.m_pArrayAllocator;
 			init(other.m_count);
-			memcpy(m_pMemPtr, other.m_pMemPtr, other.m_count * sizeof(T));
+			//memcpy(m_pMemPtr, other.m_pMemPtr, other.m_count * sizeof(T));
+			memtools::initCopy(m_pMemPtr, other.m_pMemPtr, other.m_count);
 			m_reserveNumElements = other.m_reserveNumElements;
 			//init resets count
 			m_count = other.m_count;
@@ -283,8 +291,6 @@ namespace gep
 			m_maxElements = other.m_maxElements;
 			m_reserveNumElements = other.m_reserveNumElements;
 			m_count = other.m_count;
-			m_pBegin = other.m_pBegin;
-			m_pEnd = other.m_pEnd;
 
 			//////
 			//other.m_pArrayAllocator = nullptr;
@@ -292,15 +298,13 @@ namespace gep
 			other.m_maxElements = 0;
 			other.m_reserveNumElements = 0;
 			other.m_count = 0;
-			other.m_pBegin = nullptr;
-			other.m_pEnd = nullptr;
 		}
 
-		/// \brief Sets the new end pointer to m_pEnd and returns it
-		T* setEndPtr()
+		/// \brief shifts memory block with offset, overlap while shifting back?
+		void shift(T* start, size_t size, int offset )
 		{
-			m_pEnd = m_pMemPtr + m_count;
-			return m_pEnd;
+			//shift memory
+			memcpy(start + offset, start, size);
 		}
     };
 

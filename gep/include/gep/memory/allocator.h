@@ -3,22 +3,6 @@
 #include "gep/threading/mutex.h"
 #include <vector>
 
-namespace memtools
-{
-	template<class T>
-	T* memoryalloc(size_t size){
-		T* block = (T*)malloc(size);
-		memset(block, 0, size);
-		return block;
-	}
-	void memoryCopy();
-
-	template<class T>
-	void deleteMemory(T* block){
-		free(block);
-	}
-}
-
 namespace gep
 {
     /// \brief generic allocator interface

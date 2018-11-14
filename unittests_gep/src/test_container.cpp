@@ -305,7 +305,9 @@ GEP_UNITTEST_TEST(Container, DynamicArray)
     {
         int data[] = { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
         ArrayPtr<int> arrayData(data);
+
         DynamicArray<int, SimpleLeakCheckingAllocatorPolicy> a1(arrayData);
+		SimpleLeakCheckingAllocator::instance().getAllocCount();
 
         //self assignment
         a1 = a1;

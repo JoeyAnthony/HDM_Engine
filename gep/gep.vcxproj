@@ -68,7 +68,6 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="memtools.cpp" />
     <ClCompile Include="src\gep\container\hashmap.cpp" />
     <ClCompile Include="src\gep\memory\allocators.cpp" />
     <ClCompile Include="src\gep\referencecounting.cpp" />

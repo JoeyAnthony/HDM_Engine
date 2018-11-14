@@ -308,9 +308,6 @@
     <ClCompile Include="src\gep\container\hashmap.cpp">
       <Filter>Source Files\gep\container</Filter>
     </ClCompile>
-    <ClCompile Include="memtools.cpp">
-      <Filter>Source Files\gep\memory</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gep\memory\newdelete.inl">
