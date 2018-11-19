@@ -53,7 +53,8 @@ namespace gep
         {
 			m_pArrayAllocator = pAllocator;
 			init(data.length());
-			memcpy(m_pMemPtr, data.getPtr(), data.length()*sizeof(T));
+			//memcpy(m_pMemPtr, data.getPtr(), data.length()*sizeof(T));
+			memtools::initCopy(m_pMemPtr, data.getPtr(), data.length());
 			m_count = data.length();
         }
 
@@ -120,6 +121,11 @@ namespace gep
 				GEP_DEBUG_BREAK;
 			}
 			memtools::initCopy<T>(newalloc, oldalloc, m_count);
+			//destruct all old pointers
+			if (m_count > -1) {
+				for (int i(0); i < (m_count - 1); i++)
+					memtools::destroyPtr(oldalloc + i);
+			}
         	m_pMemPtr = newalloc;
 			m_pArrayAllocator->freeMemory(oldalloc);
 
@@ -131,6 +137,12 @@ namespace gep
         {
 			if (m_pMemPtr == nullptr)
 				return;
+			//destruct all pointers
+			if (m_count > -1) {
+				for (int i(0); i < (m_count - 1); i++)
+					memtools::destroyPtr(m_pMemPtr + i);
+			}
+			//free memory
 			m_pArrayAllocator->freeMemory(m_pMemPtr);
 			m_pMemPtr = nullptr;
 			m_maxElements = 0;
@@ -154,7 +166,10 @@ namespace gep
         /// \brief removes the element at the given index shifting all elements behind it one index forth
         void removeAtIndex(size_t index)
         {
-
+			memtools::destroyPtr(m_pMemPtr + index);
+			//shift memory
+			memtools::shift<T>(m_pMemPtr + (index+1), (m_count - (index-1)), -1);
+			m_count--;
         }
 
         /// \brief inserts a element at the given index
@@ -168,7 +183,7 @@ namespace gep
 				resize(m_count * 1.5);
 
 			//shift memory
-			shift(m_pMemPtr + index, sizeof(T) * (m_count - index), 1);
+			memtools::shift<T>(m_pMemPtr + index, (m_count - index), 1);
 
 			//insert
 			new(m_pMemPtr + index) T(value);
@@ -181,7 +196,7 @@ namespace gep
 			if (m_count < m_count + array.length())
 				resize(m_count + array.length());
 
-			memcpy(end(), array.getPtr(), sizeof(T) * array.length());
+			memtools::initMove(end(), array.getPtr(), array.length());
 			m_count+=array.length();
         }
 
@@ -238,7 +253,9 @@ namespace gep
         /// \brief removes a element without keeping the order of elements
         void removeAtIndexUnordered(size_t index)
         {
-			memset(m_pMemPtr + index, 0, sizeof(T));
+			memtools::destroyPtr(m_pMemPtr + index);
+			memtools::addressCopy<T>(m_pMemPtr + index, end()-1, 1);
+			m_count--;
         }
 
         /// \brief returns the last element in the array
@@ -256,6 +273,7 @@ namespace gep
         /// \brief removes the last element in the array
         void removeLastElement()
         {
+			memtools::destroyPtr(lastElement());
 			m_count--;
         }
 
@@ -276,7 +294,6 @@ namespace gep
 		{
 			m_pArrayAllocator = other.m_pArrayAllocator;
 			init(other.m_count);
-			//memcpy(m_pMemPtr, other.m_pMemPtr, other.m_count * sizeof(T));
 			memtools::initCopy(m_pMemPtr, other.m_pMemPtr, other.m_count);
 			m_reserveNumElements = other.m_reserveNumElements;
 			//init resets count
@@ -300,12 +317,7 @@ namespace gep
 			other.m_count = 0;
 		}
 
-		/// \brief shifts memory block with offset, overlap while shifting back?
-		void shift(T* start, size_t size, int offset )
-		{
-			//shift memory
-			memcpy(start + offset, start, size);
-		}
+
     };
 
     /// \brief DynamicArray indirection to deal with allocator policies and avoid code bloat
