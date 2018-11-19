@@ -1,5 +1,5 @@
 #pragma once
-
+#include "dynamicarray.h"
 
 namespace gep
 {
@@ -111,14 +111,10 @@ namespace gep
     class HashmapImpl
     {
       public:
-        struct Pair {
-            K key;
-            V value;
-        };
-
-      private:
-
-      public:
+        //struct Pair {
+        //    K key;
+        //    V value;
+        //};
 
         struct Iterator
         {
@@ -228,9 +224,20 @@ namespace gep
             ValueIterator end() { return m_end; }
         };
 
+		private:
+			IAllocator* arrayAllocator;
+			DynamicArrayImpl<K> keys;
+			DynamicArrayImpl<V> values;
+
+		public:
+
+		//TODO hashmap
         /// \brief constructor
         HashmapImpl(IAllocator* allocator)
         {
+			arrayAllocator = allocator;
+			keys = DynamicArray<K>(allocator);
+			values = DynamicArray<V>(allocator);
         }
 
         /// \brief copy constructor
@@ -262,6 +269,7 @@ namespace gep
         /// \brief [] operator
         V& operator[](const K& key)
         {
+			
           return *((V*)nullptr);
         }
 
