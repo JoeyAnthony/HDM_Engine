@@ -111,10 +111,10 @@ namespace gep
     class HashmapImpl
     {
       public:
-        //struct Pair {
-        //    K key;
-        //    V value;
-        //};
+        struct Pair {
+            K key;
+            V value;
+        };
 
         struct Iterator
         {
@@ -223,26 +223,28 @@ namespace gep
             ValueIterator begin() { return m_begin; }
             ValueIterator end() { return m_end; }
         };
-
+#define INITIAL_ARRAY_SIZE 8
 		private:
-			IAllocator* arrayAllocator;
-			DynamicArrayImpl<K> keys;
-			DynamicArrayImpl<V> values;
-
+			IAllocator* m_pArrayAllocator;
+			Pair* m_pPairData;
+			size_t m_numIndices = 0;
+			size_t m_numUsedIndices = 0;
 		public:
 
 		//TODO hashmap
         /// \brief constructor
         HashmapImpl(IAllocator* allocator)
         {
-			arrayAllocator = allocator;
-			keys = DynamicArray<K>(allocator);
-			values = DynamicArray<V>(allocator);
+			m_pArrayAllocator = allocator;
+			m_pPairData = static_cast<Pair*>( allocator->allocateMemory(sizeof(Pair) * INITIAL_ARRAY_SIZE));
+			m_numIndices = INITIAL_ARRAY_SIZE;
+			memset(m_pPairData, 0, sizeof(Pair)*m_numIndices);
         }
 
         /// \brief copy constructor
         HashmapImpl(const HashmapImpl<K, V, HashPolicy>& other)
         {
+
         }
 
         /// \brief move constructor
@@ -268,10 +270,14 @@ namespace gep
 
         /// \brief [] operator
         V& operator[](const K& key)
-        {
+		{
+			if (m_numUsedIndices == 0)
+				return *((V*)nullptr);
+			printf("hash: %u", hashOf(&key, sizeof(K)));
+			unsigned int index = hashOf(&key, sizeof(K)) % m_numIndices;
 			
-          return *((V*)nullptr);
-        }
+			return m_pPairData[index].value;
+		}
 
         /// \brief const version of operator []
         const V& operator[](const K& key) const
@@ -280,7 +286,7 @@ namespace gep
             GEP_ASSERT(0,"not found");
             throw std::exception("key not found");
         }
-
+		
         /// \brief checks if a element does exist within the HashmapImpl
         bool exists(const K& key) const
         {

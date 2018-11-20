@@ -12,16 +12,12 @@ namespace gep
     struct DynamicArrayImpl
     {
     private:
-        // add members here
-		//Allocstuff
-		//pointer to the first element
-		T* m_pMemPtr;
-		//byte size of the array
-		size_t m_maxElements;
-		///////////
-		IAllocator* m_pArrayAllocator;
-		size_t m_reserveNumElements;
-		unsigned int m_count;
+		size_t m_maxElements;			//max number of elements			//4bytes
+		size_t m_reserveNumElements;	//reserved elements					//4bytes
+		unsigned int m_count;			//count of initialized elements		//4bytes
+		
+		T* m_pMemPtr;					//pointer to begin					
+		IAllocator* m_pArrayAllocator;	//used allocator
 
     public:
         /// \brief constructor

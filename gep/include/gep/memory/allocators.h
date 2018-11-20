@@ -3,6 +3,7 @@
 
 #include "gep/memory/allocator.h"
 #include "gep/singleton.h"
+#include "gep/container/dynamicarray.h"
 
 namespace gep
 {
@@ -46,11 +47,22 @@ namespace gep
     class GEP_API PoolAllocator : public IAllocatorStatistics
     {
     private:
+		IAllocator* parent;									//parent allocator
+		size_t m_chunkSize, m_numUsedChunks, m_reserverdBytes,	//chunk numbers
+			m_numAllocations, m_numAllocsFreed, m_maxNumChunks;
+		
+		void* m_allocation;									//allocation pointer
 
         // not accessible
         PoolAllocator(){}
         PoolAllocator(const PoolAllocator& other){}
         PoolAllocator(PoolAllocator&& other){}
+
+		//simple stack
+		size_t* m_freePtrs;									//indices of pool
+		size_t m_numOnStack = 0;
+		void addTop(size_t index);
+		size_t pop();
 
     public:
         // IAllocator interface

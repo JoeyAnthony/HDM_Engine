@@ -59,9 +59,25 @@ gep::IAllocator* gep::SimpleLeakCheckingAllocator::getParentAllocator() const
 }
 
 
+void gep::PoolAllocator::addTop(size_t index)
+{
+	m_freePtrs[m_numOnStack] = index;
+	m_numOnStack++;
+}
+
+size_t gep::PoolAllocator::pop()
+{
+	m_numOnStack--;
+	return m_freePtrs[m_numOnStack];
+}
+
 void* gep::PoolAllocator::allocateMemory(size_t size)
 {
-    return nullptr;
+	if (size > m_chunkSize)
+		return nullptr;
+
+	void* ptr = m_allocation[pop()];
+	return ptr;
 }
 
 void gep::PoolAllocator::freeMemory(void* mem)
@@ -70,35 +86,46 @@ void gep::PoolAllocator::freeMemory(void* mem)
 
 size_t gep::PoolAllocator::getNumAllocations() const
 {
-    return 0;
+    return m_numAllocations;
 }
 
 size_t gep::PoolAllocator::getNumFrees() const
 {
-    return 0;
+    return m_numAllocsFreed;
 }
 
 size_t gep::PoolAllocator::getNumBytesReserved() const
 {
-    return 0;
+    return sizeof(m_allocation);
 }
 
 size_t gep::PoolAllocator::getNumBytesUsed() const
 {
-    return 0;
+    return m_chunkSize * m_numUsedChunks;
 }
 
 gep::IAllocator* gep::PoolAllocator::getParentAllocator() const
 {
-    return nullptr;
+    return parent;
 }
 
 gep::PoolAllocator::PoolAllocator(size_t chunkSize, size_t numChunks, IAllocator* pParentAllocator)
 {
+	if (pParentAllocator == nullptr)
+		parent = &StdAllocator::globalInstance();
+	else
+		parent = pParentAllocator;
+	m_allocation = parent->allocateMemory(chunkSize*numChunks);
+
+	this->m_chunkSize = chunkSize;
+	m_maxNumChunks = numChunks;
+
+	m_freePtrs = static_cast<size_t*>( parent->allocateMemory(sizeof(size_t) * numChunks));
 }
 
 gep::PoolAllocator::~PoolAllocator()
 {
+	parent->freeMemory(m_allocation);
 }
 
 size_t gep::PoolAllocator::getFreeListSize() const
