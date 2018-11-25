@@ -1,5 +1,4 @@
 #pragma once
-#include "gep/globalManager.h"
 #include "gep/memory/memtools.h"
 #define INITIAL_MAX_ELEMENT_SIZE 8
 
@@ -12,9 +11,9 @@ namespace gep
     struct DynamicArrayImpl
     {
     private:
-		size_t m_maxElements;			//max number of elements			//4bytes
-		size_t m_reserveNumElements;	//reserved elements					//4bytes
-		unsigned int m_count;			//count of initialized elements		//4bytes
+		size_t m_maxElements;			//max number of elements							//4bytes
+		size_t m_reserveNumElements;	//number that m_maxElements at least should be		//4bytes
+		unsigned int m_count;			//count of initialized elements						//4bytes
 		
 		T* m_pMemPtr;					//pointer to begin					
 		IAllocator* m_pArrayAllocator;	//used allocator
@@ -243,7 +242,7 @@ namespace gep
         /// \brief returns the reserved number of elements
         size_t reserved() const
         {
-            return m_reserveNumElements;
+            return m_maxElements;
         }
 
         /// \brief removes a element without keeping the order of elements
@@ -257,19 +256,19 @@ namespace gep
         /// \brief returns the last element in the array
         T& lastElement()
         {
-			return m_pMemPtr + m_count - 1;
+			return *(m_pMemPtr + m_count - 1);
         }
 
         /// \brief returns the last element in the array
         const T& lastElement() const
         {
-			return m_pMemPtr + m_count - 1;
+			return *(m_pMemPtr + m_count - 1);
         }
 
         /// \brief removes the last element in the array
         void removeLastElement()
         {
-			memtools::destroyPtr(lastElement());
+			memtools::destroyPtr<T>(m_pMemPtr + m_count - 1);
 			m_count--;
         }
 

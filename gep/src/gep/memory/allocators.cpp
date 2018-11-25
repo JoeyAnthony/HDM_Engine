@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "gep/memory/allocators.h"
+#include "gep/memory/memtools.h"
+
 
 gep::SimpleLeakCheckingAllocator* volatile gep::DoubleLockingSingleton<gep::SimpleLeakCheckingAllocator>::s_instance = nullptr;
 gep::Mutex gep::DoubleLockingSingleton<gep::SimpleLeakCheckingAllocator>::s_creationMutex;
@@ -73,35 +75,51 @@ size_t gep::PoolAllocator::pop()
 
 void* gep::PoolAllocator::allocateMemory(size_t size)
 {
-	if (size > m_chunkSize)
-		return nullptr;
+	
+	if (size > m_chunkSize || m_numOnStack == 0)
+		return nullptr; //and if there are no free indices
 
-	void* ptr = m_allocation[pop()];
+	char* ptr = &m_allocation[pop()*m_chunkSize];
+	m_numUsedChunks++;
+
 	return ptr;
 }
 
 void gep::PoolAllocator::freeMemory(void* mem)
 {
+	int stackIndex = 0;
+	size_t bytes = 0;
+	//iterator over pointers
+	for(char* It = m_allocation; It < m_allocation+m_reservedBytes; It+=m_chunkSize) {
+		if(It == mem)
+		{
+			stackIndex = bytes / m_chunkSize;
+			addTop(stackIndex);
+			m_numChunksFreed++;
+			break;
+		}
+		bytes += m_chunkSize;
+	}
 }
 
 size_t gep::PoolAllocator::getNumAllocations() const
 {
-    return m_numAllocations;
+    return m_numUsedChunks;
 }
 
 size_t gep::PoolAllocator::getNumFrees() const
 {
-    return m_numAllocsFreed;
+    return m_numChunksFreed;
 }
 
 size_t gep::PoolAllocator::getNumBytesReserved() const
 {
-    return sizeof(m_allocation);
+	return m_chunkSize * m_maxNumChunks + getFreeListSize();
 }
 
 size_t gep::PoolAllocator::getNumBytesUsed() const
 {
-    return m_chunkSize * m_numUsedChunks;
+    return m_chunkSize * (m_maxNumChunks - m_numOnStack);
 }
 
 gep::IAllocator* gep::PoolAllocator::getParentAllocator() const
@@ -109,149 +127,282 @@ gep::IAllocator* gep::PoolAllocator::getParentAllocator() const
     return parent;
 }
 
-gep::PoolAllocator::PoolAllocator(size_t chunkSize, size_t numChunks, IAllocator* pParentAllocator)
+gep::PoolAllocator::PoolAllocator(size_t chunkSize, size_t numChunks, IAllocator* pParentAllocator):
+	m_maxNumChunks(numChunks),
+	m_chunkSize(memtools::AlignedSize(chunkSize)),
+	m_reservedBytes(memtools::AlignedSize(chunkSize) * numChunks + sizeof(int)*numChunks)
 {
 	if (pParentAllocator == nullptr)
 		parent = &StdAllocator::globalInstance();
 	else
 		parent = pParentAllocator;
-	m_allocation = parent->allocateMemory(chunkSize*numChunks);
-
-	this->m_chunkSize = chunkSize;
-	m_maxNumChunks = numChunks;
-
-	m_freePtrs = static_cast<size_t*>( parent->allocateMemory(sizeof(size_t) * numChunks));
+	m_allocation = static_cast<char*>( parent->allocateMemory(chunkSize*numChunks));
+	
+	//initializing free pointer indexes
+	m_freePtrs = static_cast<size_t*>( parent->allocateMemory(sizeof(size_t) * m_maxNumChunks));
+	for(unsigned int i = 0; i < m_maxNumChunks; i++)
+		addTop(i);
 }
 
 gep::PoolAllocator::~PoolAllocator()
 {
 	parent->freeMemory(m_allocation);
+	parent->freeMemory(m_freePtrs);
 }
 
 size_t gep::PoolAllocator::getFreeListSize() const
 {
-    return std::numeric_limits<size_t>::max();
+	return sizeof(size_t)*m_maxNumChunks;
 }
 
+////		STACK ALLOCATOR			////
 void* gep::StackAllocator::allocateMemory(size_t size)
 {
-    return nullptr;
+	size_t alignedSize = memtools::AlignedSize(size);
+	if (m_numBytesInUse + alignedSize > m_reservedBytes) {
+		//g_logMessage("Not enough memory in stack left");
+		return nullptr;
+	}
+
+	char* returnptr;
+	if (isFront) {
+		returnptr = m_pEnd;
+		m_pLastelement = m_pAllocation + m_numBytesInUse;
+		m_pEnd = m_pAllocation + m_numBytesInUse + alignedSize;
+	} else {
+		returnptr = m_pEnd;
+		m_pLastelement = m_pAllocation - m_numBytesInUse;
+		m_pEnd = m_pAllocation - m_numBytesInUse - alignedSize;
+	}
+
+	m_numUsedChunks++;
+	m_numBytesInUse += alignedSize;
+
+	byteSizes.append(alignedSize);
+
+    return returnptr;
 }
 
 void gep::StackAllocator::freeMemory(void* mem)
 {
+	if (mem != m_pLastelement)
+		return;
+	size_t toFree = byteSizes.lastElement();
+	byteSizes.removeLastElement();
+
+	if(isFront){
+		m_pEnd -= toFree;
+		m_pLastelement -= toFree;
+	} else {
+		m_pEnd += toFree;
+		m_pLastelement += toFree;
+	}
+	
+	m_numChunksFreed++;
+	m_numBytesInUse -= toFree;
 }
 
 void gep::StackAllocator::freeToMarker(void* mem)
 {
+	size_t index = 0;
+	if (isFront) {
+		//find mem
+		for (char* it = m_pEnd; it >= m_pAllocation; it -= byteSizes[index], ++index) {
+			if(it == mem){
+				//get amount of bytes to free
+				size_t toFree = 0;
+				for (size_t i = 0; i < index; i++) {
+					toFree += byteSizes[i];
+					byteSizes.removeLastElement();
+				}
+
+				//set pointers
+				m_pEnd = m_pAllocation + m_numBytesInUse - toFree;
+				m_pLastelement = m_pAllocation + m_numBytesInUse - toFree - byteSizes.lastElement(); // minus last bytesize;
+
+
+				m_numChunksFreed += index;
+				m_numBytesInUse -= toFree;
+				break;
+			}
+		}
+	} else {
+		for (char* it = m_pEnd; it <= m_pAllocation; it += byteSizes[index], ++index){
+			if (it == mem){
+				//get amount of bytes to free
+				size_t toFree = 0;
+				for (size_t i = 0; i < index; i++) {
+					toFree += byteSizes[i];
+					byteSizes.removeLastElement();
+				}
+
+				//set pointers
+				m_pEnd = m_pAllocation - m_numBytesInUse + toFree;
+				m_pLastelement = m_pAllocation - m_numBytesInUse + toFree + byteSizes.lastElement(); // minus last bytesize;
+
+
+				m_numChunksFreed += index;
+				m_numBytesInUse -= toFree;
+				break;
+			}
+		}
+	}
 }
 
 size_t gep::StackAllocator::getNumAllocations() const
 {
-    return 0;
+    return m_numUsedChunks;
 }
 
 size_t gep::StackAllocator::getNumFrees() const
 {
-    return 0;
+    return m_numChunksFreed;
 }
 
 size_t gep::StackAllocator::getNumBytesReserved() const
 {
-    return 0;
+    return m_reservedBytes + byteSizes.reserved();
 }
 
 size_t gep::StackAllocator::getNumBytesUsed() const
 {
-    return 0;
+	if(!isFront)
+		return 1 * (m_pAllocation - m_pEnd);
+    return 1 * (m_pEnd - m_pAllocation);
 }
 
 gep::IAllocator* gep::StackAllocator::getParentAllocator() const
 {
-    return nullptr;
+    return parent;
 }
 
-gep::StackAllocator::StackAllocator(bool front, size_t size, IAllocator* pParentAllocator)
+gep::StackAllocator::StackAllocator(bool front, size_t size, IAllocator* pParentAllocator) :
+	m_reservedBytes(memtools::AlignedSize(size)),
+	isFront(front)
 {
+	if (pParentAllocator == nullptr)
+		parent = &StdAllocator::globalInstance();
+	else
+		parent = pParentAllocator;
+
+	m_pAllocation = static_cast<char*>( parent->allocateMemory(m_reservedBytes));
+	byteSizes = DynamicArrayImpl<size_t>(parent);
+
+	if (!isFront)
+		m_pAllocation = m_pAllocation + m_reservedBytes;
+
+	m_pEnd = m_pAllocation;
+	m_pLastelement = m_pAllocation;
 }
 
-gep::StackAllocator::StackAllocator(bool front, size_t size, char* pBuffer)
+gep::StackAllocator::StackAllocator(bool front, size_t size, char* pBuffer) :
+	m_reservedBytes(memtools::AlignedSize(size)),
+	parent(nullptr),
+	isFront(front)
 {
+	m_pAllocation = pBuffer;
+	if (!isFront)
+		m_pAllocation = m_pAllocation + m_reservedBytes;
+
+	m_pEnd = m_pAllocation;
+	m_pLastelement = m_pAllocation;
+	parent = &StdAllocator::globalInstance();
+	byteSizes = DynamicArrayImpl<size_t>(parent);
 }
 
 gep::StackAllocator::~StackAllocator()
 {
+	if (parent != nullptr) {
+		if (isFront)
+			parent->freeMemory(m_pAllocation);
+		else
+			parent->freeMemory(m_pAllocation - m_reservedBytes);
+	}
+	byteSizes.~DynamicArray();
 }
 
 size_t gep::StackAllocator::getDynamicArraySize() const
 {
-    return 0;
+	return byteSizes.reserved();
 }
 
 
+gep::StackAllocatorProxy::StackAllocatorProxy(bool front, size_t size, IAllocator* pParentAllocator) :
+	m_proxyStack(front, memtools::AlignedSize(size), pParentAllocator != nullptr? pParentAllocator : &StdAllocator::globalInstance())
+{
+
+}
+
 void* gep::StackAllocatorProxy::allocateMemory(size_t size)
 {
-    return nullptr;
+	return m_proxyStack.allocateMemory(memtools::AlignedSize(size));
 }
 
 void gep::StackAllocatorProxy::freeMemory(void* mem)
 {
+	m_proxyStack.freeMemory(mem);
 }
 
 
 void* gep::DoubleEndedStackAllocator::allocateMemory(size_t size)
 {
-    return nullptr;
+    return m_frontStack.allocateMemory(memtools::AlignedSize(size));
 }
 
 void gep::DoubleEndedStackAllocator::freeMemory(void* mem)
 {
+	m_frontStack.freeMemory(mem);
 }
 
 size_t gep::DoubleEndedStackAllocator::getNumAllocations() const
 {
-    return 0;
+    return  m_frontStack.m_proxyStack.getNumAllocations() + m_backStack.m_proxyStack.getNumAllocations();
 }
 
 size_t gep::DoubleEndedStackAllocator::getNumFrees() const
 {
-    return 0;
+    return m_frontStack.m_proxyStack.getNumFrees() + m_backStack.m_proxyStack.getNumFrees();
 }
 
 size_t gep::DoubleEndedStackAllocator::getNumBytesReserved() const
 {
-    return 0;
+    return m_frontStack.m_proxyStack.getNumBytesReserved() + m_backStack.m_proxyStack.getNumBytesReserved();
 }
 
 size_t gep::DoubleEndedStackAllocator::getNumBytesUsed() const
 {
-    return 0;
+    return m_frontStack.m_proxyStack.getNumBytesUsed() + m_backStack.m_proxyStack.getNumBytesUsed();
 }
 
 gep::IAllocator* gep::DoubleEndedStackAllocator::getParentAllocator() const
 {
-    return nullptr;
+    return m_frontStack.m_proxyStack.parent;
 }
 
 gep::StackAllocatorProxy* gep::DoubleEndedStackAllocator::getFront()
 {
-    return nullptr;
+    return &m_frontStack;
 }
 
 gep::StackAllocatorProxy* gep::DoubleEndedStackAllocator::getBack()
 {
-    return nullptr;
+    return &m_backStack;
 }
 
-gep::DoubleEndedStackAllocator::DoubleEndedStackAllocator(size_t size, IAllocator* pParentAllocator)
+gep::DoubleEndedStackAllocator::DoubleEndedStackAllocator(size_t size, IAllocator* pParentAllocator) :
+	m_frontStack(true, size, pParentAllocator),
+	m_backStack(false, size, pParentAllocator)
 {
+
 }
 
 gep::DoubleEndedStackAllocator::~DoubleEndedStackAllocator()
 {
+	m_frontStack.m_proxyStack.~StackAllocator();
+	m_backStack.m_proxyStack.~StackAllocator();
 }
 
 size_t gep::DoubleEndedStackAllocator::getDynamicArraysSize() const
 {
-    return 0;
+    return m_frontStack.m_proxyStack.getDynamicArraySize() + m_backStack.m_proxyStack.getDynamicArraySize();
 }

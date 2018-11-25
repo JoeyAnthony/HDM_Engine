@@ -20,3 +20,6 @@
 #include "gep/common.h"
 #include "gep/memory/allocator.h"
 #include "gep/ArrayPtr.h"
+#include "gep/globalManager.h"
+#include "include/gep/interfaces/logging.h"
+#include "gep/container/dynamicarray.h"

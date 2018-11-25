@@ -246,7 +246,7 @@
     <ClInclude Include="include\gep\traits.h">
       <Filter>Header Files\gep</Filter>
     </ClInclude>
-    <ClInclude Include="memtools.h">
+    <ClInclude Include="include\gep\memory\memtools.h">
       <Filter>Header Files\gep\memory</Filter>
     </ClInclude>
   </ItemGroup>

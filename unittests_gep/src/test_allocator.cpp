@@ -311,6 +311,8 @@ GEP_UNITTEST_TEST(Allocator, StackAllocator)
         GEP_ASSERT(stackAllocator.getNumBytesReserved() == sizeAligned + stackAllocator.getDynamicArraySize(), "getNumBytesReserved is wrong");
 
         void* p0 = stackAllocator.allocateMemory(sizeAligned-sizeof(void*));
+		printf("size, %d \n", reinterpret_cast<uintptr_t>(p0) % sizeof(void*));
+		printf("size, %d \n", sizeof(p0) % sizeof(void*));
         GEP_ASSERT(reinterpret_cast<uintptr_t>(p0)%sizeof(void*)==0, "wrong alignment");
         void* p1 = stackAllocator.allocateMemory(sizeof(void*));
         GEP_ASSERT(reinterpret_cast<uintptr_t>(p1)%sizeof(void*)==0, "wrong alignment");

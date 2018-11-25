@@ -48,6 +48,15 @@ namespace memtools
 	{
 		ptr->~T();
 	}
+
+	inline size_t AlignedSize(size_t num)
+	{
+		if (sizeof(void*) == 4)
+			return num + (4 - (num % 4))%4;
+		else
+			return num + (8 - (num % 8))%4;
+
+	}
 }
 
 
