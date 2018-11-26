@@ -326,15 +326,27 @@ size_t gep::StackAllocator::getDynamicArraySize() const
 	return byteSizes.reserved();
 }
 
+gep::StackAllocatorProxy::StackAllocatorProxy()
+{
 
-gep::StackAllocatorProxy::StackAllocatorProxy(bool front, size_t size, IAllocator* pParentAllocator) :
-	m_proxyStack(front, memtools::AlignedSize(size), pParentAllocator != nullptr? pParentAllocator : &StdAllocator::globalInstance())
+}
+
+gep::StackAllocatorProxy::~StackAllocatorProxy()
+{
+	//m_proxyStack.~StackAllocator();
+}
+
+gep::StackAllocatorProxy::StackAllocatorProxy(bool front, size_t size, DoubleEndedStackAllocator* deStack, IAllocator* pParentAllocator) :
+	m_proxyStack(front, memtools::AlignedSize(size), pParentAllocator != nullptr? pParentAllocator : &StdAllocator::globalInstance()),
+	doubleEndedStack(deStack)
 {
 
 }
 
 void* gep::StackAllocatorProxy::allocateMemory(size_t size)
 {
+	if (doubleEndedStack->isOverlapping(memtools::AlignedSize(size)))
+		return nullptr;
 	return m_proxyStack.allocateMemory(memtools::AlignedSize(size));
 }
 
@@ -346,7 +358,7 @@ void gep::StackAllocatorProxy::freeMemory(void* mem)
 
 void* gep::DoubleEndedStackAllocator::allocateMemory(size_t size)
 {
-    return m_frontStack.allocateMemory(memtools::AlignedSize(size));
+	return m_frontStack.allocateMemory(memtools::AlignedSize(size));
 }
 
 void gep::DoubleEndedStackAllocator::freeMemory(void* mem)
@@ -354,9 +366,16 @@ void gep::DoubleEndedStackAllocator::freeMemory(void* mem)
 	m_frontStack.freeMemory(mem);
 }
 
+bool gep::DoubleEndedStackAllocator::isOverlapping(size_t size)
+{
+	if (getNumBytesUsed() + size > m_frontStack.m_proxyStack.m_reservedBytes)
+		return true;
+	return false;
+}
+
 size_t gep::DoubleEndedStackAllocator::getNumAllocations() const
 {
-    return  m_frontStack.m_proxyStack.getNumAllocations() + m_backStack.m_proxyStack.getNumAllocations();
+    return m_frontStack.m_proxyStack.getNumAllocations() + m_backStack.m_proxyStack.getNumAllocations();
 }
 
 size_t gep::DoubleEndedStackAllocator::getNumFrees() const
@@ -366,43 +385,43 @@ size_t gep::DoubleEndedStackAllocator::getNumFrees() const
 
 size_t gep::DoubleEndedStackAllocator::getNumBytesReserved() const
 {
-    return m_frontStack.m_proxyStack.getNumBytesReserved() + m_backStack.m_proxyStack.getNumBytesReserved();
+	return m_frontStack.m_proxyStack.getNumBytesReserved() + m_backStack.m_proxyStack.getDynamicArraySize();
 }
 
 size_t gep::DoubleEndedStackAllocator::getNumBytesUsed() const
 {
-    return m_frontStack.m_proxyStack.getNumBytesUsed() + m_backStack.m_proxyStack.getNumBytesUsed();
+	return m_frontStack.m_proxyStack.getNumBytesUsed() + m_backStack.m_proxyStack.getNumBytesUsed();
 }
 
 gep::IAllocator* gep::DoubleEndedStackAllocator::getParentAllocator() const
 {
-    return m_frontStack.m_proxyStack.parent;
+	return m_frontStack.m_proxyStack.parent;
 }
 
 gep::StackAllocatorProxy* gep::DoubleEndedStackAllocator::getFront()
 {
-    return &m_frontStack;
+	return &m_frontStack;
 }
 
 gep::StackAllocatorProxy* gep::DoubleEndedStackAllocator::getBack()
 {
-    return &m_backStack;
+	return &m_backStack;
 }
 
 gep::DoubleEndedStackAllocator::DoubleEndedStackAllocator(size_t size, IAllocator* pParentAllocator) :
-	m_frontStack(true, size, pParentAllocator),
-	m_backStack(false, size, pParentAllocator)
+	m_frontStack(true, size, this, pParentAllocator),
+	m_backStack(false, size, this, pParentAllocator)
 {
-
+	
 }
 
 gep::DoubleEndedStackAllocator::~DoubleEndedStackAllocator()
 {
-	m_frontStack.m_proxyStack.~StackAllocator();
-	m_backStack.m_proxyStack.~StackAllocator();
+	//m_frontStack.~StackAllocatorProxy();
+	//m_backStack.~StackAllocatorProxy();
 }
 
 size_t gep::DoubleEndedStackAllocator::getDynamicArraysSize() const
 {
-    return m_frontStack.m_proxyStack.getDynamicArraySize() + m_backStack.m_proxyStack.getDynamicArraySize();
+	return m_frontStack.m_proxyStack.getDynamicArraySize() + m_backStack.m_proxyStack.getDynamicArraySize();
 }

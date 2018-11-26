@@ -96,17 +96,19 @@ namespace gep
 		size_t pop();
     };
 
-    /// \brief stack allocator
-    // TODO Add locking policy
 	class DoubleEndedStackAllocator;
+	class StackAllocatorProxy;
+	/// \brief stack allocator
+    // TODO Add locking policy
     class GEP_API StackAllocator : public IAllocatorStatistics
     {
 		friend DoubleEndedStackAllocator;
+		friend StackAllocatorProxy;
     private:
 		size_t m_numUsedChunks = 0;							//total number of allocations
 		size_t m_numChunksFreed = 0;						//total freed chunks
 		size_t m_numBytesInUse = 0;
-		const size_t m_reservedBytes = 0;
+		const size_t m_reservedBytes = 0;					//bytes reserved only by the stack pointer
 
 		DynamicArray<size_t> byteSizes;
 		IAllocator* parent;
@@ -154,12 +156,15 @@ namespace gep
     {
 		friend DoubleEndedStackAllocator;
     private:
+		DoubleEndedStackAllocator* doubleEndedStack;
 		StackAllocator m_proxyStack;
     public:
 		StackAllocatorProxy();
+		~StackAllocatorProxy();
+
 		StackAllocatorProxy(const StackAllocatorProxy& other);
 		StackAllocatorProxy(StackAllocatorProxy&& other);
-		StackAllocatorProxy(bool front, size_t size, IAllocator* pParentAllocator = nullptr);
+		StackAllocatorProxy(bool front, size_t size, DoubleEndedStackAllocator* deStack, IAllocator* pParentAllocator = nullptr);
         virtual void* allocateMemory(size_t size) override;
         virtual void freeMemory(void* mem) override;
     };
@@ -182,6 +187,8 @@ namespace gep
         virtual void* allocateMemory(size_t size) override;
         virtual void freeMemory(void* mem) override;
 
+		bool isOverlapping(size_t size);
+
         // IAllocatorStatistics Interface
         virtual size_t getNumAllocations() const override;
         virtual size_t getNumFrees() const override;
@@ -193,7 +200,7 @@ namespace gep
         StackAllocatorProxy* getFront();
         StackAllocatorProxy* getBack();
 
-        DoubleEndedStackAllocator(size_t size, IAllocator* pParentAllocator = nullptr);
+        DoubleEndedStackAllocator(size_t size, IAllocator* pParentALlocator = nullptr);
         ~DoubleEndedStackAllocator();
 
         // returns the memory reserved by the internally used dynamic arrays of both stack allocators
