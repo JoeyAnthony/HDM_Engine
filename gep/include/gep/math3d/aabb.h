@@ -92,9 +92,6 @@ namespace gep
         /// \brief checks if this bounding box intersects another one
         bool intersects(const AxisAlignedBox_t<T>& rh) const
         {
-            //
-            // TODO implement me!
-            //
             return true;
         }
 

@@ -69,40 +69,40 @@ namespace gep
             return res;
         }
 
-        /// \brief returns the inverse of this matrix
-        inline const mat3_t<T> inverse() const {
-            T det = this->det();
-            if(det > -GetEpsilon<T>::value() && det < GetEpsilon<T>::value())
-                return mat3_t<T>::identity();
+		/// \brief returns the inverse of this matrix
+		inline const mat3_t<T> inverse() const {
+			T det = this->det();
+			if (det > -GetEpsilon<T>::value() && det < GetEpsilon<T>::value())
+				return mat3_t<T>::identity();
 
-            mat3 res;
-            res.m00 =  (m11 * m22 - m21 * m12) / det;
-            res.m10 = -(m01 * m22 - m02 * m21) / det;
-            res.m20 =  (m01 * m12 - m02 * m11) / det;
-            res.m01 = -(m10 * m22 - m12 * m20) / det;
-            res.m11 =  (m00 * m22 - m02 * m20) / det;
-            res.m21 = -(m00 * m12 - m10 * m02) / det;
-            res.m02 =  (m10 * m21 - m20 * m11) / det;
-            res.m12 = -(m00 * m21 - m20 * m01) / det;
-            res.m22 =  (m00 * m11 - m10 * m01) / det;
-            return res;
-        }
+			mat3 res;
+			res.m00 = (m11 * m22 - m21 * m12) / det;
+			res.m10 = -(m01 * m22 - m02 * m21) / det;
+			res.m20 = (m01 * m12 - m02 * m11) / det;
+			res.m01 = -(m10 * m22 - m12 * m20) / det;
+			res.m11 = (m00 * m22 - m02 * m20) / det;
+			res.m21 = -(m00 * m12 - m10 * m02) / det;
+			res.m02 = (m10 * m21 - m20 * m11) / det;
+			res.m12 = -(m00 * m21 - m20 * m01) / det;
+			res.m22 = (m00 * m11 - m10 * m01) / det;
+			return res;
+		}
 
         /// \brief returns a identity 3x3 matrix
         static const mat3_t<T> identity() {
             mat3_t<T> res(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
-            return res;
+			res.m00 = 1;
+			res.m11 = 1;
+			res.m22 = 1;
+			return 	res;
         }
 
         /// \brief * operator for multiplying this matrix with a 3 component vector
         inline const vec3_t<T> operator * (const vec3_t<T>& v) const {
             vec3_t<T> temp(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
+			temp.x = data[0] * v.x + data[1] * v.y + data[2] * v.z;
+			temp.y = data[3] * v.x + data[4] * v.y + data[5] * v.z;
+			temp.z = data[6] * v.x + data[7] * v.y + data[8] * v.z;
             return temp;
         }
 
@@ -110,9 +110,18 @@ namespace gep
         inline const mat3_t<T> operator * (const mat3_t<T>& m) const
         {
             mat3_t<T> result(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
+			result.m00 = m.m00 * data[0] + m.m10 * data[1] + m.m20 * data[2];
+			result.m01 = m.m10 * data[0] + m.m11 * data[1] + m.m12 * data[2];
+			result.m02 = m.m20 * data[0] + m.m21 * data[1] + m.m22 * data[2];
+
+			result.m10 = m.m00 * data[3] + m.m10 * data[4] + m.m20 * data[5];
+			result.m11 = m.m10 * data[3] + m.m11 * data[4] + m.m12 * data[5];
+			result.m12 = m.m20 * data[3] + m.m21 * data[4] + m.m22 * data[5];
+
+			result.m10 = m.m00 * data[6] + m.m10 * data[7] + m.m20 * data[8];
+			result.m11 = m.m10 * data[6] + m.m11 * data[7] + m.m12 * data[8];
+			result.m12 = m.m20 * data[6] + m.m21 * data[7] + m.m22 * data[8];
+
             return result;
         }
 

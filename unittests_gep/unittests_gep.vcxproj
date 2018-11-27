@@ -173,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\test_allocator.cpp" />
+    <ClCompile Include="src\test_math3d.cpp" />
     <ClCompile Include="src\Test_RefCounting.cpp" />
     <ClCompile Include="src\Test_WeakPtr.cpp" />
     <ClCompile Include="stdafx.cpp">
