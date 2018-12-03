@@ -55,9 +55,26 @@ namespace gep
         inline const mat4_t<T> operator * (const mat4_t<T>& m) const
         {
             mat4_t<T> result(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
+			result.m00 = this->m00 * m.m00 + this->m01 * m.m10 + this->m02 * m.m20 + this->m03 * m.m30;
+			result.m01 = this->m00 * m.m01 + this->m01 * m.m11 + this->m02 * m.m21 + this->m03 * m.m31;
+			result.m02 = this->m00 * m.m02 + this->m01 * m.m12 + this->m02 * m.m22 + this->m03 * m.m32;
+			result.m03 = this->m00 * m.m03 + this->m01 * m.m13 + this->m02 * m.m23 + this->m03 * m.m33;
+
+			result.m10 = this->m10 * m.m00 + this->m11 * m.m10 + this->m12 * m.m20 + this->m13 * m.m30;
+			result.m11 = this->m10 * m.m01 + this->m11 * m.m11 + this->m12 * m.m21 + this->m13 * m.m31;
+			result.m12 = this->m10 * m.m02 + this->m11 * m.m12 + this->m12 * m.m22 + this->m13 * m.m32;
+			result.m13 = this->m10 * m.m03 + this->m11 * m.m13 + this->m12 * m.m23 + this->m13 * m.m33;
+
+			result.m20 = this->m20 * m.m00 + this->m21 * m.m10 + this->m22 * m.m20 + this->m23 * m.m30;
+			result.m21 = this->m20 * m.m01 + this->m21 * m.m11 + this->m22 * m.m21 + this->m23 * m.m31;
+			result.m22 = this->m20 * m.m02 + this->m21 * m.m12 + this->m22 * m.m22 + this->m23 * m.m32;
+			result.m23 = this->m20 * m.m03 + this->m21 * m.m13 + this->m22 * m.m23 + this->m23 * m.m33;
+
+			result.m30 = this->m30 * m.m00 + this->m31 * m.m10 + this->m32 * m.m20 + this->m33 * m.m30;
+			result.m31 = this->m30 * m.m01 + this->m31 * m.m11 + this->m32 * m.m21 + this->m33 * m.m31;
+			result.m32 = this->m30 * m.m02 + this->m31 * m.m12 + this->m32 * m.m22 + this->m33 * m.m32;
+			result.m33 = this->m30 * m.m03 + this->m31 * m.m13 + this->m32 * m.m23 + this->m33 * m.m33;
+
             return result;
         }
 
@@ -66,19 +83,20 @@ namespace gep
         inline const vec3_t<T> transformDirection(const vec3_t<T>& v) const
         {
             vec3_t<T> temp(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
+			temp.x = v.x*data[0] + v.y * data[4] + v.z * data[8];
+			temp.y = v.x*data[1] + v.y * data[5] + v.z * data[9];
+			temp.z = v.x*data[2] + v.y * data[6] + v.z * data[10];
+
             return temp;
         }
 
         /// \brief transform a position vector
         inline const vec3_t<T> transformPosition(const vec3_t<T>& v) const
         {
-            vec3_t<T> temp(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
+			vec3_t<T> temp(DO_NOT_INITIALIZE);
+			temp.x = v.x*data[0] + v.y * data[4] + v.z * data[8] + data[12];
+			temp.y = v.x*data[1] + v.y * data[5] + v.z * data[9] + data[13];
+			temp.z = v.x*data[2] + v.y * data[6] + v.z * data[10] + data[14];
             return temp;
         }
 
@@ -219,9 +237,10 @@ namespace gep
         static const mat4_t<T> identity()
         {
             mat4_t<T> mat(DO_NOT_INITIALIZE);
-            //
-            // TODO implement me!
-            //
+			mat.m00=1; mat.m01=0; mat.m02=0; mat.m03=0;
+			mat.m10=0; mat.m11=1; mat.m12=0; mat.m13=0;
+			mat.m20=0; mat.m21=0; mat.m22=1; mat.m23=0;
+			mat.m30=0; mat.m31=0; mat.m32=0; mat.m33=1; 
             return mat;
         }
 

@@ -74,10 +74,19 @@ namespace gep
         /// \brief checks if a point is within the box
         bool contains(const T& rh) const
         {
-            //
-            // TODO implement me!
-            //
+            
             return true;
+        }
+
+		bool insidePlane(vec2 p, vec2 min, vec2 max)
+        {
+	        
+        }
+
+		float areaTriangle(vec2 p, vec2 t1, vec2 t2)
+        {
+			float lenghtp = cos(Q_rsqrt(t1.x*t1.x + t1.y*t1.y) / Q_rsqrt(t2.x*t2.x + t2.y*t2.y));
+
         }
 
         /// \brief checks if a another bounding is completely inside

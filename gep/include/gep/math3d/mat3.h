@@ -51,7 +51,8 @@ namespace gep
         inline T det() const
         {
             T det = data[0] * ( data[4]*data[8] - data[5]*data[7] )
-                - data[3] * ( data[1]*data[8] - data[2]*data[7] )
+                -
+				data[3] * ( data[1]*data[8] - data[2]*data[7] )
                 + data[6] * ( data[1]*data[5] - data[2]*data[4] );
             return det;
         }
@@ -91,18 +92,18 @@ namespace gep
         /// \brief returns a identity 3x3 matrix
         static const mat3_t<T> identity() {
             mat3_t<T> res(DO_NOT_INITIALIZE);
-			res.m00 = 1;
-			res.m11 = 1;
-			res.m22 = 1;
+			res.m00=1; res.m01=0; res.m02=0;
+			res.m10=0; res.m11=1; res.m12=0;
+			res.m20=0; res.m21=0; res.m22=1;
 			return 	res;
         }
 
         /// \brief * operator for multiplying this matrix with a 3 component vector
         inline const vec3_t<T> operator * (const vec3_t<T>& v) const {
             vec3_t<T> temp(DO_NOT_INITIALIZE);
-			temp.x = data[0] * v.x + data[1] * v.y + data[2] * v.z;
-			temp.y = data[3] * v.x + data[4] * v.y + data[5] * v.z;
-			temp.z = data[6] * v.x + data[7] * v.y + data[8] * v.z;
+			temp.x = data[0] * v.x + data[3] * v.y + data[6] * v.z;
+			temp.y = data[1] * v.x + data[4] * v.y + data[7] * v.z;
+			temp.z = data[2] * v.x + data[5] * v.y + data[8] * v.z;
             return temp;
         }
 
@@ -110,17 +111,18 @@ namespace gep
         inline const mat3_t<T> operator * (const mat3_t<T>& m) const
         {
             mat3_t<T> result(DO_NOT_INITIALIZE);
-			result.m00 = m.m00 * data[0] + m.m10 * data[1] + m.m20 * data[2];
-			result.m01 = m.m10 * data[0] + m.m11 * data[1] + m.m12 * data[2];
-			result.m02 = m.m20 * data[0] + m.m21 * data[1] + m.m22 * data[2];
+			//					__		|			__		|			__		|
+			result.m00 = this->m00 * m.m00 + this->m01 * m.m10 + this->m02 * m.m20;
+			result.m01 = this->m00 * m.m01 + this->m01 * m.m11 + this->m02 * m.m21;
+			result.m02 = this->m00 * m.m02 + this->m01 * m.m12 + this->m02 * m.m22;
 
-			result.m10 = m.m00 * data[3] + m.m10 * data[4] + m.m20 * data[5];
-			result.m11 = m.m10 * data[3] + m.m11 * data[4] + m.m12 * data[5];
-			result.m12 = m.m20 * data[3] + m.m21 * data[4] + m.m22 * data[5];
+			result.m10 = this->m10 * m.m00 + this->m11 * m.m10 + this->m12 * m.m20;
+			result.m11 = this->m10 * m.m01 + this->m11 * m.m11 + this->m12 * m.m21;
+			result.m12 = this->m10 * m.m02 + this->m11 * m.m12 + this->m12 * m.m22;
 
-			result.m10 = m.m00 * data[6] + m.m10 * data[7] + m.m20 * data[8];
-			result.m11 = m.m10 * data[6] + m.m11 * data[7] + m.m12 * data[8];
-			result.m12 = m.m20 * data[6] + m.m21 * data[7] + m.m22 * data[8];
+			result.m20 = this->m20 * m.m00 + this->m21 * m.m10 + this->m22 * m.m20;
+			result.m21 = this->m20 * m.m01 + this->m21 * m.m11 + this->m22 * m.m21;
+			result.m22 = this->m20 * m.m02 + this->m21 * m.m12 + this->m22 * m.m22;
 
             return result;
         }
