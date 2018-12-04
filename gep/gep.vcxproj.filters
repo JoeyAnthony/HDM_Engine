@@ -249,6 +249,45 @@
     <ClInclude Include="include\gep\memory\memtools.h">
       <Filter>Header Files\gep\memory</Filter>
     </ClInclude>
+    <ClInclude Include="include\gep\threading\semaphore.h">
+      <Filter>Header Files\gep\threading</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\chunkfile.h">
+      <Filter>Header Files\gep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\directory.h">
+      <Filter>Header Files\gep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\exception.h">
+      <Filter>Header Files\gep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\file.h">
+      <Filter>Header Files\gep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gep\modelloader.h">
+      <Filter>Header Files\gep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\ddsloader.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\font.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\imagedata2d.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\model.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\shader.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\texture2d.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gepimpl\subsystems\renderer\vertexbuffer.h">
+      <Filter>Header Files\gepimpl\subsystems\renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -308,10 +347,55 @@
     <ClCompile Include="src\gep\container\hashmap.cpp">
       <Filter>Source Files\gep\container</Filter>
     </ClCompile>
+    <ClCompile Include="src\gep\chunkfile.cpp">
+      <Filter>Source Files\gep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\directory.cpp">
+      <Filter>Source Files\gep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\file.cpp">
+      <Filter>Source Files\gep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\modelloader.cpp">
+      <Filter>Source Files\gep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\timer.cpp">
+      <Filter>Source Files\gep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\ddsloader.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\font.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\imagedata2d.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\model.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\shader.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\texture2d.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\subsystems\renderer\vertexbuffer.cpp">
+      <Filter>Source Files\gep\subsystems\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gep\threading\semaphore.cpp">
+      <Filter>Source Files\gep\threading</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gep\memory\newdelete.inl">
       <Filter>Header Files\gep\memory</Filter>
+    </None>
+    <None Include="src\gep\assimpmodelloader.inl">
+      <Filter>Source Files\gep</Filter>
+    </None>
+    <None Include="src\gep\thmodelloader.inl">
+      <Filter>Source Files\gep</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -85,8 +85,9 @@ namespace gep
 
 		float areaTriangle(vec2 p, vec2 t1, vec2 t2)
         {
-			float lenghtp = cos(Q_rsqrt(t1.x*t1.x + t1.y*t1.y) / Q_rsqrt(t2.x*t2.x + t2.y*t2.y));
-
+			float lengthB = cos(Q_rsqrt(t1.x*t1.x + t1.y*t1.y) / Q_rsqrt(t2.x*t2.x + t2.y*t2.y));
+			float lengthA = cos(Q_rsqrt(t1.x*t1.x + t1.y*t1.y) / Q_rsqrt(t2.x*t2.x + t2.y*t2.y));
+			
         }
 
         /// \brief checks if a another bounding is completely inside

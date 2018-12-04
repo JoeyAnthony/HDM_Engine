@@ -21,15 +21,26 @@
   <ItemGroup>
     <ClInclude Include="include\gepimpl\subsystems\logging.h" />
     <ClInclude Include="include\gepimpl\subsystems\memoryManager.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\ddsloader.h" />
     <ClInclude Include="include\gepimpl\subsystems\renderer\extractor.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\font.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\imagedata2d.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\model.h" />
     <ClInclude Include="include\gepimpl\subsystems\renderer\renderer.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\shader.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\texture2d.h" />
+    <ClInclude Include="include\gepimpl\subsystems\renderer\vertexbuffer.h" />
     <ClInclude Include="include\gepimpl\subsystems\resourceManager.h" />
     <ClInclude Include="include\gepimpl\subsystems\updateFramework.h" />
     <ClInclude Include="include\gep\ArrayPtr.h" />
+    <ClInclude Include="include\gep\chunkfile.h" />
     <ClInclude Include="include\gep\common.h" />
     <ClInclude Include="include\gep\container\dynamicarray.h" />
     <ClInclude Include="include\gep\container\hashmap.h" />
+    <ClInclude Include="include\gep\directory.h" />
+    <ClInclude Include="include\gep\exception.h" />
     <ClInclude Include="include\gep\exit.h" />
+    <ClInclude Include="include\gep\file.h" />
     <ClInclude Include="include\gep\gepmodule.h" />
     <ClInclude Include="include\gep\globalManager.h" />
     <ClInclude Include="include\gep\interfaces\logging.h" />
@@ -54,10 +65,12 @@
     <ClInclude Include="include\gep\memory\allocators.h" />
     <ClInclude Include="include\gep\memory\memoryutils.h" />
     <ClInclude Include="include\gep\memory\memtools.h" />
+    <ClInclude Include="include\gep\modelloader.h" />
     <ClInclude Include="include\gep\referencecounting.h" />
     <ClInclude Include="include\gep\settings.h" />
     <ClInclude Include="include\gep\singleton.h" />
     <ClInclude Include="include\gep\threading\mutex.h" />
+    <ClInclude Include="include\gep\threading\semaphore.h" />
     <ClInclude Include="include\gep\timer.h" />
     <ClInclude Include="include\gep\traits.h" />
     <ClInclude Include="include\gep\types.h" />
@@ -68,8 +81,12 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\gep\chunkfile.cpp" />
     <ClCompile Include="src\gep\container\hashmap.cpp" />
+    <ClCompile Include="src\gep\directory.cpp" />
+    <ClCompile Include="src\gep\file.cpp" />
     <ClCompile Include="src\gep\memory\allocators.cpp" />
+    <ClCompile Include="src\gep\modelloader.cpp" />
     <ClCompile Include="src\gep\referencecounting.cpp" />
     <ClCompile Include="src\gep\settings.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
@@ -79,11 +96,20 @@
     <ClCompile Include="src\gep\memory\allocator.cpp" />
     <ClCompile Include="src\gep\subsystems\logging.cpp" />
     <ClCompile Include="src\gep\subsystems\memoryManager.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\ddsloader.cpp" />
     <ClCompile Include="src\gep\subsystems\renderer\extractor.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\font.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\imagedata2d.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\model.cpp" />
     <ClCompile Include="src\gep\subsystems\renderer\renderer.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\shader.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\texture2d.cpp" />
+    <ClCompile Include="src\gep\subsystems\renderer\vertexbuffer.cpp" />
     <ClCompile Include="src\gep\subsystems\resourceManager.cpp" />
     <ClCompile Include="src\gep\subsystems\updateFramework.cpp" />
     <ClCompile Include="src\gep\threading\mutex.cpp" />
+    <ClCompile Include="src\gep\threading\semaphore.cpp" />
+    <ClCompile Include="src\gep\timer.cpp" />
     <ClCompile Include="src\gep\unittest\unittestmanager.cpp" />
     <ClCompile Include="src\gep\utils.cpp" />
     <ClCompile Include="src\stdafx.cpp">
@@ -95,6 +121,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gep\memory\newdelete.inl" />
+    <None Include="src\gep\assimpmodelloader.inl" />
+    <None Include="src\gep\thmodelloader.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\gepimpl\subsystems\physics\havok\conversion\notes.txt" />
@@ -188,7 +216,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LUA_BUILD_AS_DLL;WIN32;GEP_EXPORTS;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(FMOD_API)\api\lowlevel\inc;$(FMOD_API)\api\studio\inc;$(HAVOK_API)\Source;../thirdparty;./;./include;../thirdparty/lua/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(FMOD_API)\api\lowlevel\inc;$(FMOD_API)\api\studio\inc;$(HAVOK_API)\Source;../thirdparty;./;./include;../thirdparty/lua/src;$(SolutionDir)\gep\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <DisableSpecificWarnings>4250</DisableSpecificWarnings>
@@ -240,7 +268,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LUA_BUILD_AS_DLL;WIN32;GEP_EXPORTS;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(FMOD_API)\api\lowlevel\inc;$(FMOD_API)\api\studio\inc;$(HAVOK_API)\Source;../thirdparty;./;./include;../;../thirdparty/lua/src;../include/lua/src/;../thirdparty/lua/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(FMOD_API)\api\lowlevel\inc;$(FMOD_API)\api\studio\inc;$(HAVOK_API)\Source;../thirdparty;./;./include;../;../thirdparty/lua/src;../include/lua/src/;../thirdparty/lua/src;$(SolutionDir)\gep\include</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4250</DisableSpecificWarnings>
