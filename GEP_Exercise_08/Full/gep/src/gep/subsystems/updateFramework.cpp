@@ -1,5 +1,9 @@
 #include "stdafx.h"
 #include "gepimpl/subsystems/updateFramework.h"
+#include "gep/globalmanager.h"
+#include "gepimpl/subsystems/renderer/renderer.h"
+#include "gepimpl/subsystems/renderer/extractor.h"
+#include "gepimpl/subsystems/resourcemanager.h"
 
 gep::UpdateFramework::UpdateFramework() :
     m_FrameTimesPtr(m_pFrameTimesArray)
@@ -28,6 +32,10 @@ void gep::UpdateFramework::run()
 			f(m_pFrameTimesArray[m_frameIdx]);
 		}
 
+		g_globalManager.instance().getResourceManager()->update(getElapsedTime());
+		g_globalManager.instance().getRenderer()->update(getElapsedTime());
+
+		//calculate delta time
 		PointInTime newFrameTime = PointInTime(gameTimer);
 		float frameTime = newFrameTime - lastFrameTime;
 		m_frameIdx = (m_frameIdx + 1) % m_FrameTimesPtr.length();
@@ -39,8 +47,7 @@ void gep::UpdateFramework::run()
 
 float gep::UpdateFramework::getElapsedTime() const
 {
-    // TODO implement
-    return 1.0f / 60.0f;
+	return m_FrameTimesPtr[m_frameIdx];
 }
 
 float gep::UpdateFramework::calcElapsedTimeAverage(size_t numFrames) const

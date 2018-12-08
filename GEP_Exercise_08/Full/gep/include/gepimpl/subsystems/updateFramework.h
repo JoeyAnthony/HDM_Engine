@@ -23,7 +23,7 @@ namespace gep
 		Timer gameTimer;
 		size_t m_callbacknr = 0;
 		DynamicArray<size_t> m_ids;
-		DynamicArray<std::function<void(float time)>> m_updateDelegate;
+		DynamicArray<std::function<void(float elapsedTime)>> m_updateDelegate;
 
 
 
